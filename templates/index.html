@@ -58,8 +58,17 @@
                                     {% endif %}
                                 </div>
                                 <div class="flex space-x-2">
-                                    <button class="text-indigo-600 hover:text-indigo-900" onclick="editAssignment({{ assignment.id }})">Edit</button>
-                                    <button class="text-red-600 hover:text-red-900" onclick="deleteAssignment({{ assignment.id }})">Delete</button>
+                                    <!-- Removed inline onclick; use data-id and JS listeners -->
+                                    <button type="button"
+                                            class="text-indigo-600 hover:text-indigo-900 btn-edit"
+                                            data-id="{{ assignment.id }}">
+                                        Edit
+                                    </button>
+                                    <button type="button"
+                                            class="text-red-600 hover:text-red-900 btn-delete"
+                                            data-id="{{ assignment.id }}">
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -70,4 +79,49 @@
             {% endif %}
         </div>
     </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // If global functions exist, we'll call them; otherwise we have safe fallbacks.
+  document.addEventListener('DOMContentLoaded', function () {
+    // Edit buttons
+    document.querySelectorAll('.btn-edit').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const id = parseInt(this.dataset.id, 10);
+        if (typeof window.editAssignment === 'function') {
+          window.editAssignment(id);
+        } else {
+          // Fallback: navigate to an edit page if your app supports it
+          window.location.href = `/assignments/${id}/edit`;
+        }
+      });
+    });
+
+    // Delete buttons
+    document.querySelectorAll('.btn-delete').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        const id = parseInt(this.dataset.id, 10);
+        if (typeof window.deleteAssignment === 'function') {
+          window.deleteAssignment(id);
+        } else {
+          // Fallback: simple DELETE fetch (adjust route if your API differs)
+          if (confirm('Delete this assignment?')) {
+            try {
+              const res = await fetch(`/assignments/${id}`, { method: 'DELETE' });
+              if (res.ok) {
+                location.reload();
+              } else {
+                const err = await res.json().catch(() => ({}));
+                alert(err.detail || 'Delete failed.');
+              }
+            } catch (e) {
+              alert('Delete failed.');
+            }
+          }
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

@@ -8,9 +8,15 @@ import models
 import schemas
 from database import get_db
 from break_routes import router as break_router
+from calendar_routes import router as calendar_router
+from limit_routes import router as limit_router
+
 
 app = FastAPI()
 app.include_router(break_router, prefix="/api", tags=["break"])
+app.include_router(calendar_router)
+app.include_router(limit_router, prefix="/api", tags=["limits"])
+
 
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
