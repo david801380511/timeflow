@@ -58,8 +58,8 @@
                                     {% endif %}
                                 </div>
                                 <div class="flex space-x-2">
-                                    <button class="text-indigo-600 hover:text-indigo-900">Edit</button>
-                                    <button class="text-red-600 hover:text-red-900">Delete</button>
+                                    <button class="text-indigo-600 hover:text-indigo-900" onclick="editAssignment({{ assignment.id }})">Edit</button>
+                                    <button class="text-red-600 hover:text-red-900" onclick="deleteAssignment({{ assignment.id }})">Delete</button>
                                 </div>
                             </div>
                         </div>
