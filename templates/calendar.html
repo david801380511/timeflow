@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Calendar{% endblock %}
+
+{% block extra_css %}
+<style>
+  .slot { min-height: 42px; border-bottom: 1px solid #e5e7eb; }
+  .slot.selected { background-color: rgba(99,102,241,.15); }
+  .slot.scheduled-busy { background-color: rgba(107,114,128,.15); }
+  .slot.scheduled-study { background-color: rgba(37,99,235,.15); }
+  .block-pill { background: rgba(37,99,235,.25); border: 1px solid rgba(37,99,235,.7); border-radius: 8px; padding: 2px 6px; font-size: 12px; display:inline-flex; gap:6px; align-items:center; }
+  .block-pill.busy { background: rgba(107,114,128,.25); border-color: rgba(107,114,128,.7); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-2">
+      <button id="prevWeek" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300">← Prev</button>
+      <button id="nextWeek" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300">Next →</button>
+      <button id="todayBtn" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300">Today</button>
+    </div>
+    <h1 id="weekLabel" class="text-2xl font-semibold"></h1>
+    <div class="text-sm text-gray-600">Click & drag to create a block</div>
+  </div>
+
+  <div id="calendarGrid" class="grid grid-cols-8 gap-0 border-t border-l border-gray-200 bg-white rounded">
+    <!-- Column headers -->
+    <div class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium">Time</div>
+    <div id="dayHead0" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
+    <div id="dayHead1" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
+    <div id="dayHead2" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
+    <div id="dayHead3" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
+    <div id="dayHead4" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
+    <div id="dayHead5" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
+    <div id="dayHead6" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
+
+    <!-- The time rows + day slots are injected by JS -->
+  </div>
+</div>
+
+<!-- Create Block Modal -->
+<div id="blockModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+  <div class="relative top-20 mx-auto p-6 border w-96 shadow-lg rounded-md bg-white">
+    <h3 class="text-lg font-medium mb-4">Create Block</h3>
+    <div class="space-y-3">
+      <div>
+        <label class="block text-sm text-gray-700 mb-1">Title</label>
+        <input id="blkTitle" class="w-full p-2 border rounded" placeholder="Busy or Assignment title">
+      </div>
+      <div>
+        <label class="block text-sm text-gray-700 mb-1">Type</label>
+        <select id="blkType" class="w-full p-2 border rounded">
+          <option value="busy">Busy (no study)</option>
+          <option value="study">Study for assignment</option>
+        </select>
+      </div>
+      <div id="assignWrap" class="hidden">
+        <label class="block text-sm text-gray-700 mb-1">Assignment</label>
+        <select id="blkAssignment" class="w-full p-2 border rounded"></select>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-6">
+      <button id="blkCancel" class="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+      <button id="blkSave" class="px-4 py-2 bg-indigo-600 text-white rounded">Save</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/calendar.js"></script>
+{% endblock %}

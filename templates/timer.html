@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Pomodoro Timer{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .timer-display {
+            font-family: 'Arial', sans-serif;
+            font-size: 4.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 0.5rem 0;
+            color: #4B5563;
+            line-height: 1;
+        }
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.1s;
+            transform: rotate(90deg);
+            transform-origin: 50% 50%;
+        }
+        .timer-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto;
+            padding: 0;
+            overflow: visible;
+        }
+        .timer-controls {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Pomodoro Timer</h1>
+
+        <div class="bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
+            <!-- Timer Display -->
+            <div class="flex flex-col items-center mb-8">
+                <div class="mb-4">
+                    <span id="timer-status" class="text-xl font-semibold">Focus Time</span>
+                    <span id="interval-count" class="text-gray-500 ml-2">(1/4)</span>
+                </div>
+                
+                <div class="timer-container">
+                    <svg class="progress-ring w-full h-full" viewBox="0 0 120 120">
+                        <circle class="progress-ring__circle" stroke="#E5E7EB" stroke-width="8" fill="transparent" r="50" cx="60" cy="60"/>
+                        <circle id="progress-circle" class="progress-ring__circle" stroke="#3B82F6" stroke-width="8" 
+                                stroke-dasharray="314, 314" fill="transparent" r="50" cx="60" cy="60"/>
+                    </svg>
+                    <div class="timer-controls">
+                        <div id="time-display" class="timer-display">25:00</div>
+                        <div class="flex justify-center space-x-4">
+                            <button id="start-pause" class="px-4 py-1.5 bg-green-500 text-white rounded hover:bg-green-600 text-sm">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button id="reset" class="px-4 py-1.5 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Break Activity Suggestion -->
+            <div id="break-suggestion" class="hidden bg-blue-50 p-4 rounded-lg mb-8">
+                <h3 class="text-lg font-semibold mb-2">Break Time Suggestion</h3>
+                <p id="break-activity" class="mb-4">It's time for a break! How about a quick stretch?</p>
+                <div class="flex space-x-4">
+                    <button id="start-break" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Start <span id="break-duration">5</span>-min Break
+                    </button>
+                    <button id="skip-break" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+                        Skip Break
+                    </button>
+                </div>
+            </div>
+
+            <!-- Current Assignment -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold mb-4">Current Assignment</h3>
+                <select id="assignment-select" class="w-full p-2 border rounded">
+                    <option value="">Select an assignment...</option>
+                    {% for assignment in assignments %}
+                    <option value="{{ assignment.id }}">{{ assignment.name }}</option>
+                    {% endfor %}
+                </select>
+                <div id="assignment-details" class="mt-4 p-4 bg-gray-50 rounded hidden">
+                    <h4 id="assignment-name" class="font-semibold text-lg"></h4>
+                    <p id="assignment-due" class="text-gray-600"></p>
+                    <p id="assignment-progress" class="mt-2"></p>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold">Today's Focus</h4>
+                    <p id="today-focus" class="text-2xl font-bold">0h 0m</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold">Completed Intervals</h4>
+                    <p id="completed-intervals" class="text-2xl font-bold">0</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold">Next Long Break</h4>
+                    <p id="next-long-break" class="text-2xl font-bold">2 intervals</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Break Modal -->
+    <div id="break-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold mb-4">Break Time!</h2>
+            <p id="break-message" class="mb-6">Your break is starting. Take a moment to relax!</p>
+            
+            <div class="flex justify-center mb-6">
+                <div class="text-center">
+                    <div id="break-timer" class="text-5xl font-bold mb-2">05:00</div>
+                    <div id="break-activity-name" class="text-lg text-gray-600">Stretching</div>
+                </div>
+            </div>
+            
+            <button id="end-break-early" class="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                End Break Early
+            </button>
+        </div>
+    </div>
+
+    <!-- Break Modal -->
+    <div id="break-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold mb-4">Time for a Break!</h2>
+            <p class="mb-6" id="break-message">Take a short break and stretch your legs.</p>
+            
+            <div class="mb-6">
+                <h3 class="font-semibold mb-2">Suggested Activities:</h3>
+                <ul id="break-activities" class="space-y-2">
+                    <!-- Activities will be populated by JavaScript -->
+                </ul>
+            </div>
+            
+            <button id="end-break-early" class="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                End Break Early
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/static/js/timer.js"></script>
+    <script src="/static/js/time_limit.js"></script>
+
+{% endblock %}
