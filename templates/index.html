@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Assignment Tracker{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Assignment Tracker</h1>
+        
+        <!-- Add Assignment Form -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Add New Assignment</h2>
+            <form action="/assignments" method="post" class="space-y-4">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Assignment Name</label>
+                    <input type="text" id="name" name="name" required 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                
+                <div>
+                    <label for="due_date" class="block text-sm font-medium text-gray-700">Due Date & Time</label>
+                    <input type="datetime-local" id="due_date" name="due_date" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                
+                <div>
+                    <label for="estimated_time" class="block text-sm font-medium text-gray-700">Estimated Time (hours)</label>
+                    <input type="number" id="estimated_time" name="estimated_time" min="1" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="description" name="description" rows="3"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                </div>
+                
+                <button type="submit" 
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Add Assignment
+                </button>
+            </form>
+        </div>
+        
+        <!-- Assignments List -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Your Assignments</h2>
+            {% if assignments %}
+                <div class="space-y-4">
+                    {% for assignment in assignments %}
+                        <div class="border-b border-gray-200 pb-4 mb-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-lg font-medium">{{ assignment.name }}</h3>
+                                    <p class="text-sm text-gray-600">Due: {{ assignment.due_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                                    <p class="text-sm text-gray-600">Estimated Time: {{ assignment.estimated_time }} hours</p>
+                                    {% if assignment.description %}
+                                        <p class="mt-2 text-gray-700">{{ assignment.description }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="text-indigo-600 hover:text-indigo-900">Edit</button>
+                                    <button class="text-red-600 hover:text-red-900">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-center py-4">No assignments yet. Add one above!</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
