@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List
 
 # Import using absolute paths
-import models
-import schemas
-import crud
-from database import get_db
+from backend.models import models
+from backend.schemas import schemas
+from backend import crud
+from backend.database import get_db
 
 router = APIRouter()
 

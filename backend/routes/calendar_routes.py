@@ -3,15 +3,15 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import datetime
-from database import get_db
-from models import Assignment
-from calendar_models import CalendarBlock
+from backend.database import get_db
+from backend.models.models import Assignment
+from backend.models.calendar_models import CalendarBlock
 from pathlib import Path
 
 router = APIRouter()
 
 # Use absolute templates dir (robust if working dir varies)
-TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
+TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 @router.get("/calendar", response_class=HTMLResponse)

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
-from database import get_db
-from limit_models import DailyLimitSetting
-from models import StudySession
+from backend.database import get_db
+from backend.models.limit_models import DailyLimitSetting
+from backend.models.models import StudySession
 
 router = APIRouter()
 

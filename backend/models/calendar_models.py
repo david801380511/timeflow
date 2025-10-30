@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from models import Base, engine  # reuse existing Base/engine
+from backend.models.models import Base, engine  # reuse existing Base/engine
 
 class CalendarBlock(Base):
     __tablename__ = "calendar_blocks"

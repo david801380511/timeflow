@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
-import models
-import schemas
+from backend.models import models
+from backend.schemas import schemas
 
 def create_default_settings(db: Session):
     """Create default user settings if they don't exist"""

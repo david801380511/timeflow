@@ -4,12 +4,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from datetime import datetime
 from sqlalchemy.orm import Session
-import models
-import schemas
-from database import get_db
-from break_routes import router as break_router
-from calendar_routes import router as calendar_router
-from limit_routes import router as limit_router
+from backend.models import models
+from backend.schemas import schemas
+from backend.database import get_db
+from backend.routes.break_routes import router as break_router
+from backend.routes.calendar_routes import router as calendar_router
+from backend.routes.limit_routes import router as limit_router
 
 
 app = FastAPI()

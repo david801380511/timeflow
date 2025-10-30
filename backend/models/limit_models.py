@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer
-from models import Base, engine  # reuse existing Base/engine
+from backend.models.models import Base, engine  # reuse existing Base/engine
 
 class DailyLimitSetting(Base):
     __tablename__ = "daily_limit_setting"
