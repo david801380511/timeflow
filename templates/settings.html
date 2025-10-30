@@ -29,8 +29,68 @@
                         </div>
                         <div>
                             <label for="short-breaks-before-long" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Short Breaks Before Long Break</label>
-                            <input type="number" id="short-breaks-before-long" name="short_breaks_before_long" min="1" max="10" 
+                            <input type="number" id="short-breaks-before-long" name="short_breaks_before_long" min="1" max="10"
                                    class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="preferred-start-hour" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preferred Start Time</label>
+                            <select id="preferred-start-hour" name="preferred_start_hour"
+                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="0">12:00 AM</option>
+                                <option value="1">1:00 AM</option>
+                                <option value="2">2:00 AM</option>
+                                <option value="3">3:00 AM</option>
+                                <option value="4">4:00 AM</option>
+                                <option value="5">5:00 AM</option>
+                                <option value="6">6:00 AM</option>
+                                <option value="7">7:00 AM</option>
+                                <option value="8">8:00 AM</option>
+                                <option value="9" selected>9:00 AM</option>
+                                <option value="10">10:00 AM</option>
+                                <option value="11">11:00 AM</option>
+                                <option value="12">12:00 PM</option>
+                                <option value="13">1:00 PM</option>
+                                <option value="14">2:00 PM</option>
+                                <option value="15">3:00 PM</option>
+                                <option value="16">4:00 PM</option>
+                                <option value="17">5:00 PM</option>
+                                <option value="18">6:00 PM</option>
+                                <option value="19">7:00 PM</option>
+                                <option value="20">8:00 PM</option>
+                                <option value="21">9:00 PM</option>
+                                <option value="22">10:00 PM</option>
+                                <option value="23">11:00 PM</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="preferred-end-hour" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preferred End Time</label>
+                            <select id="preferred-end-hour" name="preferred_end_hour"
+                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="0">12:00 AM</option>
+                                <option value="1">1:00 AM</option>
+                                <option value="2">2:00 AM</option>
+                                <option value="3">3:00 AM</option>
+                                <option value="4">4:00 AM</option>
+                                <option value="5">5:00 AM</option>
+                                <option value="6">6:00 AM</option>
+                                <option value="7">7:00 AM</option>
+                                <option value="8">8:00 AM</option>
+                                <option value="9">9:00 AM</option>
+                                <option value="10">10:00 AM</option>
+                                <option value="11">11:00 AM</option>
+                                <option value="12">12:00 PM</option>
+                                <option value="13">1:00 PM</option>
+                                <option value="14">2:00 PM</option>
+                                <option value="15">3:00 PM</option>
+                                <option value="16">4:00 PM</option>
+                                <option value="17" selected>5:00 PM</option>
+                                <option value="18">6:00 PM</option>
+                                <option value="19">7:00 PM</option>
+                                <option value="20">8:00 PM</option>
+                                <option value="21">9:00 PM</option>
+                                <option value="22">10:00 PM</option>
+                                <option value="23">11:00 PM</option>
+                            </select>
                         </div>
                         <!-- Time Limit Settings (Added) -->
                         <div class="mb-12">

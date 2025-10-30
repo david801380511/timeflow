@@ -47,15 +47,17 @@ async function loadSettings() {
 // Populate the settings form with current values
 function populateSettingsForm(settings) {
     if (!settings) return;
-    
+
     // Timer settings
     document.getElementById('work-interval').value = settings.work_interval || 25;
     document.getElementById('short-break').value = settings.short_break || 5;
     document.getElementById('long-break').value = settings.long_break || 15;
     document.getElementById('short-breaks-before-long').value = settings.short_breaks_before_long || 3;
+    document.getElementById('preferred-start-hour').value = settings.preferred_start_hour || 9;
+    document.getElementById('preferred-end-hour').value = settings.preferred_end_hour || 17;
     document.getElementById('auto-start-breaks').checked = settings.auto_start_breaks !== false; // Default to true
     document.getElementById('auto-start-pomodoros').checked = settings.auto_start_pomodoros !== false; // Default to true
-    
+
     // Notification settings (these would be loaded from user preferences)
     document.getElementById('enable-notifications').checked = true;
     document.getElementById('enable-sound').checked = true;
@@ -190,6 +192,8 @@ async function handleTimerSettingsSubmit(e) {
         short_break: parseInt(formData.get('short_break')),
         long_break: parseInt(formData.get('long_break')),
         short_breaks_before_long: parseInt(formData.get('short_breaks_before_long')),
+        preferred_start_hour: parseInt(formData.get('preferred_start_hour')),
+        preferred_end_hour: parseInt(formData.get('preferred_end_hour')),
         auto_start_breaks: formData.get('auto_start_breaks') === 'on',
         auto_start_pomodoros: formData.get('auto_start_pomodoros') === 'on',
         long_break_delay: 15 // Default value, can be made configurable

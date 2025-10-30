@@ -494,6 +494,10 @@
     const longBreak = settings.long_break || 15;
     const totalMinutes = assignment.estimated_time;
 
+    // Get preferred work hours (with fallbacks to global START/END hours)
+    const preferredStartHour = settings.preferred_start_hour !== undefined ? settings.preferred_start_hour : START_HOUR;
+    const preferredEndHour = settings.preferred_end_hour !== undefined ? settings.preferred_end_hour : END_HOUR;
+
     // Calculate how many days we have until due date
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -512,16 +516,22 @@
     const daysAvailable = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
     const daysToUse = Math.max(1, Math.min(daysAvailable, 14)); // Use up to 14 days max
 
+    // Calculate available work hours per day within preferred hours
+    const preferredWorkHoursPerDay = preferredEndHour - preferredStartHour;
+    const maxPreferredMinutesPerDay = preferredWorkHoursPerDay * 60;
+
     // Calculate sessions needed
     const totalSessions = Math.ceil(totalMinutes / workInterval);
 
-    // Distribute sessions across days (max 4 sessions per day to avoid burnout)
-    const maxSessionsPerDay = 4;
-    const sessionsPerDay = Math.min(maxSessionsPerDay, Math.ceil(totalSessions / daysToUse));
+    // Prioritize multiple small blocks: aim for 2-4 sessions per day
+    const idealSessionsPerDay = Math.min(4, Math.max(2, Math.ceil(totalSessions / daysToUse)));
+
+    // Check if we can fit within preferred hours
+    const canFitInPreferredHours = totalMinutes <= (maxPreferredMinutesPerDay * daysAvailable * 0.7);
 
     // Start scheduling from now or start of current month, whichever is later
     let currentDay = new Date(Math.max(now, getMonthStart(currentMonth)));
-    currentDay.setHours(START_HOUR, 0, 0, 0);
+    currentDay.setHours(preferredStartHour, 0, 0, 0);
 
     let remainingMinutes = totalMinutes;
     let sessionCount = 0;
@@ -533,18 +543,39 @@
 
     while(remainingMinutes > 0 && currentDay <= dueDate){
       // Move to next day if we've reached the session limit for today
-      if (consecutiveSessionsToday >= sessionsPerDay) {
+      if (consecutiveSessionsToday >= idealSessionsPerDay) {
         currentDay.setDate(currentDay.getDate() + 1);
-        currentDay.setHours(START_HOUR, 0, 0, 0);
+        currentDay.setHours(preferredStartHour, 0, 0, 0);
         currentTime = new Date(currentDay);
         consecutiveSessionsToday = 0;
         continue;
       }
 
-      // If we're past working hours, move to next day
-      if(currentTime.getHours() >= END_HOUR || currentTime.getHours() < START_HOUR){
+      // If before preferred hours, jump to preferred start
+      if(currentTime.getHours() < preferredStartHour){
+        currentTime.setHours(preferredStartHour, 0, 0, 0);
+        continue;
+      }
+
+      // If past preferred hours, check if we should extend or move to next day
+      if(currentTime.getHours() >= preferredEndHour){
+        // Only extend past preferred hours if urgent AND still within global hours
+        if (!canFitInPreferredHours && currentTime.getHours() < END_HOUR) {
+          // Allow working past preferred hours for urgent assignments
+        } else {
+          // Move to next day
+          currentDay.setDate(currentDay.getDate() + 1);
+          currentDay.setHours(preferredStartHour, 0, 0, 0);
+          currentTime = new Date(currentDay);
+          consecutiveSessionsToday = 0;
+          continue;
+        }
+      }
+
+      // Absolute limit check (never schedule past 10 PM)
+      if(currentTime.getHours() >= END_HOUR){
         currentDay.setDate(currentDay.getDate() + 1);
-        currentDay.setHours(START_HOUR, 0, 0, 0);
+        currentDay.setHours(preferredStartHour, 0, 0, 0);
         currentTime = new Date(currentDay);
         consecutiveSessionsToday = 0;
         continue;

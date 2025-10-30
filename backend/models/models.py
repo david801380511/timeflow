@@ -20,7 +20,7 @@ Base = declarative_base()
 
 class UserSettings(Base):
     __tablename__ = "user_settings"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     work_interval = Column(Integer, default=25)  # in minutes
     short_break = Column(Integer, default=5)     # in minutes
@@ -29,7 +29,11 @@ class UserSettings(Base):
     auto_start_breaks = Column(Boolean, default=True)
     auto_start_pomodoros = Column(Boolean, default=True)
     long_break_delay = Column(Integer, default=15)  # minutes before suggesting long break activities
-    
+
+    # Preferred work hours (in 24-hour format)
+    preferred_start_hour = Column(Integer, default=9)   # 9 AM
+    preferred_end_hour = Column(Integer, default=17)    # 5 PM (17:00)
+
     # Relationships
     break_activities = relationship("BreakActivity", back_populates="settings")
 
