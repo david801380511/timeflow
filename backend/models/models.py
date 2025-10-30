@@ -69,9 +69,15 @@ class Assignment(Base):
     time_spent = Column(Integer, default=0)  # in minutes
     priority = Column(Integer, default=2)  # 1=high, 2=medium, 3=low
     completed = Column(Boolean, default=False)
+
+    # Sprint/Task fields
+    sprint = Column(String(100), nullable=True)  # Sprint name
+    assignee = Column(String(100), nullable=True)  # Person assigned
+    status = Column(String(20), default='new')  # new, in_progress, completed, blocked
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     study_sessions = relationship("StudySession", back_populates="assignment")
 

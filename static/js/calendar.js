@@ -11,6 +11,7 @@
   const prevWeekBtn = document.getElementById('prevWeek');
   const nextWeekBtn = document.getElementById('nextWeek');
   const todayBtn   = document.getElementById('todayBtn');
+  const autoScheduleBtn = document.getElementById('autoScheduleBtn');
 
   const modal = document.getElementById('blockModal');
   const blkTitle = document.getElementById('blkTitle');
@@ -21,19 +22,20 @@
   const blkSave = document.getElementById('blkSave');
 
   // --- State ---
-  let weekStart = mondayOf(new Date()); // start-of-week (Mon)
-  let slots = [];  // 2D array: [day][row] -> element
+  let weekStart = mondayOf(new Date());
+  let slots = [];
   let isSelecting = false;
-  let selStart = null; // {day,row}
-  let selEnd = null;   // {day,row}
+  let selStart = null;
+  let selEnd = null;
   let assignments = [];
-  let blocks = [];     // server-fetched blocks
+  let blocks = [];
+  let settings = null;
 
   // --- Utilities ---
   function fmt2(n){ return String(n).padStart(2,'0'); }
   function mondayOf(d){
     const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const day = (x.getDay() + 6) % 7; // 0=Mon .. 6=Sun
+    const day = (x.getDay() + 6) % 7;
     x.setDate(x.getDate() - day);
     x.setHours(0,0,0,0);
     return x;
@@ -59,10 +61,7 @@
     selStart = selEnd = null;
   }
 
-  function rowsPerDay(){
-    return ((END_HOUR*60 - START_HOUR*60)/SLOT_MIN)|0;
-  }
-
+  function rowsPerDay(){ return ((END_HOUR*60 - START_HOUR*60)/SLOT_MIN)|0; }
   function normRange(s,e){
     const cmp = (s.day - e.day) || (s.row - e.row);
     return (cmp<=0) ? [s,e] : [e,s];
@@ -81,37 +80,25 @@
 
   // --- Build grid ---
   function buildGrid(){
-    // Remove old rows (keep first 1 header row already in HTML = 8 cells)
-    // We will rebuild the time rows and slots.
-    // First, clear existing rows below the first header row (we created only headers in HTML).
-    // Count of rows:
     const totalRows = rowsPerDay();
-
-    // Remove any existing rows (nodes) after the 8 headers (Time + 7 days)
     while (grid.children.length > 8) grid.removeChild(grid.lastChild);
-
-    // Build the time rows (each row has 1 time cell + 7 day cells)
     slots = Array.from({length:DAYS}, ()=> Array(totalRows).fill(null));
 
     for (let r=0; r<totalRows; r++){
-      // Time label col
       const mins = rowToMinutes(r);
       const timeCell = document.createElement('div');
-      timeCell.className = "p-2 border-b border-r border-gray-200 text-xs text-gray-600";
+      timeCell.className = "p-2 border-b border-r border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-400";
       timeCell.textContent = minutesToHM(mins);
       grid.appendChild(timeCell);
 
-      // Day columns
       for (let day=0; day<DAYS; day++){
         const cell = document.createElement('div');
-        cell.className = "slot border-b border-r border-gray-200";
+        cell.className = "slot border-b border-r border-gray-200 dark:border-gray-700";
         cell.dataset.day = String(day);
         cell.dataset.row = String(r);
-
         cell.addEventListener('mousedown', startSelect);
         cell.addEventListener('mouseenter', growSelect);
         cell.addEventListener('mouseup', endSelect);
-
         slots[day][r] = cell;
         grid.appendChild(cell);
       }
@@ -140,7 +127,6 @@
     const row = parseInt(e.currentTarget.dataset.row,10);
     selEnd = {day,row};
     const [a,b] = normRange(selStart, selEnd);
-    // clear old selection visuals
     Array.from(grid.querySelectorAll('.slot.selected')).forEach(el=>el.classList.remove('selected'));
     for(let d=a.day; d<=b.day; d++){
       for (let r=(d===a.day?a.row:0); r<=(d===b.day?b.row:rowsPerDay()-1); r++){
@@ -160,21 +146,17 @@
 
   async function finishSelection(){
     if (!selStart || !selEnd) return;
-
     const [a,b] = normRange(selStart, selEnd);
-    // Compute start/end datetimes (local)
     const startDay = addDays(weekStart, a.day);
     const endDay   = addDays(weekStart, b.day);
     const startMins = rowToMinutes(a.row);
-    const endMins   = rowToMinutes(b.row + 1); // include the last slot
+    const endMins   = rowToMinutes(b.row + 1);
 
     const start = new Date(startDay);
     start.setHours(Math.floor(startMins/60), startMins%60, 0, 0);
-
     const end = new Date(endDay);
     end.setHours(Math.floor(endMins/60), endMins%60, 0, 0);
 
-    // Prepare modal
     blkTitle.value = "";
     blkType.value = "busy";
     assignWrap.classList.add('hidden');
@@ -231,13 +213,22 @@
     blkSave.addEventListener('click', onSave, { once: true });
   }
 
+  async function loadSettings(){
+    try{
+      const res = await fetch('/api/settings/');
+      settings = await res.json();
+    }catch{
+      settings = { work_interval: 25, short_break: 5, long_break: 15 };
+    }
+  }
+
   async function loadAssignments(){
     try{
       const res = await fetch('/api/assignments');
       const data = await res.json();
-      assignments = data;
+      assignments = data.filter(a => !a.completed);
       blkAssignment.innerHTML = '<option value="">Select assignment...</option>' +
-        assignments.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+        assignments.map(a=>`<option value="${a.id}">${a.name} (${a.estimated_time}min)</option>`).join('');
     }catch{
       assignments = [];
       blkAssignment.innerHTML = '<option value="">No assignments</option>';
@@ -247,7 +238,7 @@
   function getWeekRange(){
     const start = new Date(weekStart);
     start.setHours(0,0,0,0);
-    const end = addDays(weekStart, 7); // exclusive next Monday
+    const end = addDays(weekStart, 7);
     end.setHours(0,0,0,0);
     return { start: localDateTimeStr(start), end: localDateTimeStr(end) };
   }
@@ -260,20 +251,28 @@
   }
 
   function clearScheduled(){
-    grid.querySelectorAll('.slot.scheduled-busy, .slot.scheduled-study').forEach(el=>{
-      el.classList.remove('scheduled-busy','scheduled-study');
+    grid.querySelectorAll('.slot.scheduled-busy, .slot.scheduled-study, .slot.scheduled-break').forEach(el=>{
+      el.classList.remove('scheduled-busy','scheduled-study','scheduled-break');
       el.innerHTML = '';
     });
   }
 
   function renderBlocks(){
     clearScheduled();
-
     const totalRows = rowsPerDay();
+
+    // Group blocks by assignment
+    const assignmentBlocks = {};
+    for (const b of blocks){
+      if(b.assignment_id){
+        if(!assignmentBlocks[b.assignment_id]) assignmentBlocks[b.assignment_id] = [];
+        assignmentBlocks[b.assignment_id].push(b);
+      }
+    }
+
     for (const b of blocks){
       const s = new Date(b.start);
       const e = new Date(b.end);
-      // Determine day index and rows
       const dayIndex = Math.floor((s - weekStart) / (24*3600*1000));
       if (dayIndex < 0 || dayIndex >= DAYS) continue;
 
@@ -282,17 +281,21 @@
       const startRow = Math.max(0, minutesToRow(startMins));
       const endRow = Math.min(totalRows, minutesToRow(endMins));
 
+      // Determine if this is a break block (check title)
+      const isBreak = b.title && (b.title.toLowerCase().includes('break') || b.title.toLowerCase().includes('rest'));
+      const cssClass = isBreak ? 'scheduled-break' : (b.block_type === 'busy' ? 'scheduled-busy' : 'scheduled-study');
+
       for (let r=startRow; r<endRow; r++){
         const cell = slots[dayIndex][r];
-        cell.classList.add(b.block_type === 'busy' ? 'scheduled-busy' : 'scheduled-study');
+        cell.classList.add(cssClass);
         if (r === startRow){
           const pill = document.createElement('span');
-          pill.className = 'block-pill ' + (b.block_type === 'busy' ? 'busy' : '');
+          pill.className = 'block-pill ' + (b.block_type === 'busy' ? 'busy' : isBreak ? 'break' : 'study');
           const t1 = minutesToHM(startMins);
           const t2 = minutesToHM(endMins);
           pill.textContent = `${b.title} (${t1}–${t2})`;
           const del = document.createElement('button');
-          del.className = 'ml-2 text-xs text-gray-700 hover:text-red-600';
+          del.className = 'ml-2 text-xs hover:text-red-600';
           del.textContent = '✕';
           del.title = 'Delete';
           del.addEventListener('click', async (ev)=>{
@@ -311,6 +314,125 @@
           cell.appendChild(pill);
         }
       }
+    }
+  }
+
+  // Auto-schedule assignments
+  async function autoScheduleAssignments(){
+    if(!settings) await loadSettings();
+    if(!assignments.length) await loadAssignments();
+
+    const unscheduledAssignments = assignments.filter(a => {
+      // Check if assignment already has calendar blocks
+      return !blocks.some(b => b.assignment_id === a.id);
+    });
+
+    if(unscheduledAssignments.length === 0){
+      alert('All assignments are already scheduled!');
+      return;
+    }
+
+    // Schedule each assignment
+    for(const assignment of unscheduledAssignments){
+      await scheduleAssignment(assignment);
+    }
+
+    await loadBlocks();
+    renderBlocks();
+    alert('Assignments auto-scheduled successfully!');
+  }
+
+  async function scheduleAssignment(assignment){
+    const workInterval = settings.work_interval || 25;
+    const shortBreak = settings.short_break || 5;
+    const totalMinutes = assignment.estimated_time;
+
+    // Find next available slot starting from now
+    const now = new Date();
+    let currentTime = new Date(Math.max(now, weekStart));
+    currentTime.setMinutes(Math.ceil(currentTime.getMinutes() / 30) * 30); // Round to next 30min
+
+    let remainingMinutes = totalMinutes;
+    let sessionCount = 0;
+
+    while(remainingMinutes > 0){
+      // Skip if outside working hours
+      if(currentTime.getHours() < START_HOUR){
+        currentTime.setHours(START_HOUR, 0, 0, 0);
+      }
+      if(currentTime.getHours() >= END_HOUR){
+        currentTime.setDate(currentTime.getDate() + 1);
+        currentTime.setHours(START_HOUR, 0, 0, 0);
+        continue;
+      }
+
+      // Check if slot is available
+      if(await isSlotAvailable(currentTime, workInterval)){
+        // Create work block
+        const endTime = new Date(currentTime);
+        endTime.setMinutes(endTime.getMinutes() + Math.min(workInterval, remainingMinutes));
+
+        await createBlock({
+          title: assignment.name,
+          start: localDateTimeStr(currentTime),
+          end: localDateTimeStr(endTime),
+          block_type: 'study',
+          assignment_id: assignment.id
+        });
+
+        remainingMinutes -= workInterval;
+        sessionCount++;
+        currentTime = endTime;
+
+        // Add break if more work remaining
+        if(remainingMinutes > 0){
+          const breakTime = new Date(currentTime);
+          const breakEnd = new Date(breakTime);
+          breakEnd.setMinutes(breakEnd.getMinutes() + shortBreak);
+
+          await createBlock({
+            title: `Break (${assignment.name})`,
+            start: localDateTimeStr(breakTime),
+            end: localDateTimeStr(breakEnd),
+            block_type: 'busy'
+          });
+
+          currentTime = breakEnd;
+        }
+      }else{
+        currentTime.setMinutes(currentTime.getMinutes() + 30);
+      }
+    }
+  }
+
+  async function isSlotAvailable(startTime, durationMinutes){
+    const endTime = new Date(startTime);
+    endTime.setMinutes(endTime.getMinutes() + durationMinutes);
+
+    for(const block of blocks){
+      const blockStart = new Date(block.start);
+      const blockEnd = new Date(block.end);
+
+      if(startTime < blockEnd && endTime > blockStart){
+        return false; // Overlaps
+      }
+    }
+    return true;
+  }
+
+  async function createBlock(payload){
+    try{
+      const res = await fetch('/api/calendar/blocks', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if(res.ok){
+        const newBlock = await res.json();
+        blocks.push({...payload, id: newBlock.id});
+      }
+    }catch(e){
+      console.error('Error creating block:', e);
     }
   }
 
@@ -337,11 +459,17 @@
     renderBlocks();
   });
 
+  if(autoScheduleBtn){
+    autoScheduleBtn.addEventListener('click', autoScheduleAssignments);
+  }
+
   // --- Init ---
   (async function init(){
+    await loadSettings();
     updateWeekLabel();
     buildGrid();
     await loadBlocks();
+    await loadAssignments();
     renderBlocks();
   })();
 })();
