@@ -114,4 +114,19 @@ def delete_block(block_id: int, db: Session = Depends(get_db)):
 @router.get("/api/assignments")
 def list_assignments(db: Session = Depends(get_db)):
     rows = db.query(Assignment).all()
-    return [{"id": a.id, "name": a.name} for a in rows]
+    return [
+        {
+            "id": a.id,
+            "name": a.name,
+            "description": a.description if a.description else "",
+            "due_date": a.due_date.isoformat() if a.due_date else None,
+            "estimated_time": a.estimated_time if a.estimated_time else 0,
+            "time_spent": a.time_spent if a.time_spent else 0,
+            "priority": a.priority if a.priority else 2,
+            "completed": a.completed if a.completed is not None else False,
+            "sprint": a.sprint if a.sprint else "",
+            "assignee": a.assignee if a.assignee else "",
+            "status": a.status if a.status else "new"
+        }
+        for a in rows
+    ]

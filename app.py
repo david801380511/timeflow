@@ -71,23 +71,28 @@ async def settings_page(request: Request):
 @app.get("/api/assignments")
 async def get_assignments(db: Session = Depends(get_db)):
     """Get all assignments as JSON"""
+    print("DEBUG: get_assignments called")
     assignments = db.query(models.Assignment).all()
-    return [
-        {
+    print(f"DEBUG: Found {len(assignments)} assignments")
+    result = []
+    for a in assignments:
+        item = {
             "id": a.id,
             "name": a.name,
-            "description": a.description,
-            "due_date": a.due_date.isoformat(),
-            "estimated_time": a.estimated_time,
-            "time_spent": a.time_spent,
-            "priority": a.priority,
-            "completed": a.completed,
-            "sprint": a.sprint,
-            "assignee": a.assignee,
-            "status": a.status
+            "description": a.description if a.description else "",
+            "due_date": a.due_date.isoformat() if a.due_date else None,
+            "estimated_time": a.estimated_time if a.estimated_time else 0,
+            "time_spent": a.time_spent if a.time_spent else 0,
+            "priority": a.priority if a.priority else 2,
+            "completed": a.completed if a.completed is not None else False,
+            "sprint": a.sprint if a.sprint else "",
+            "assignee": a.assignee if a.assignee else "",
+            "status": a.status if a.status else "new"
         }
-        for a in assignments
-    ]
+        print(f"DEBUG: Assignment {a.id}: {item}")
+        result.append(item)
+    print(f"DEBUG: Returning {len(result)} items")
+    return JSONResponse(content=result)
 
 @app.post("/api/assignments/{assignment_id}/delete")
 async def delete_assignment(assignment_id: int, db: Session = Depends(get_db)):
