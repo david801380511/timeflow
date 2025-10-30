@@ -41,14 +41,22 @@
 
 {% block content %}
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-center mb-8">Pomodoro Timer</h1>
+        <h1 class="text-3xl font-bold text-center mb-8 dark:text-white">Pomodoro Timer</h1>
 
-        <div class="bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
+            <!-- Assignment Selection -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Working on:</label>
+                <select id="assignment-select" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
+                    <option value="">Select an assignment...</option>
+                </select>
+            </div>
+
             <!-- Timer Display -->
             <div class="flex flex-col items-center mb-8">
                 <div class="mb-4">
-                    <span id="timer-status" class="text-xl font-semibold">Focus Time</span>
-                    <span id="interval-count" class="text-gray-500 ml-2">(1/4)</span>
+                    <span id="timer-status" class="text-xl font-semibold dark:text-white">Focus Time</span>
+                    <span id="interval-count" class="text-gray-500 dark:text-gray-400 ml-2">(1/4)</span>
                 </div>
                 
                 <div class="timer-container">

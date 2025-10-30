@@ -7,8 +7,19 @@
   .slot.selected { background-color: rgba(99,102,241,.15); }
   .slot.scheduled-busy { background-color: rgba(107,114,128,.15); }
   .slot.scheduled-study { background-color: rgba(37,99,235,.15); }
+  .slot.scheduled-break { background-color: rgba(34,197,94,.15); }
   .block-pill { background: rgba(37,99,235,.25); border: 1px solid rgba(37,99,235,.7); border-radius: 8px; padding: 2px 6px; font-size: 12px; display:inline-flex; gap:6px; align-items:center; }
   .block-pill.busy { background: rgba(107,114,128,.25); border-color: rgba(107,114,128,.7); }
+  .block-pill.break { background: rgba(34,197,94,.25); border-color: rgba(34,197,94,.7); }
+  .block-pill.study { background: rgba(37,99,235,.25); border-color: rgba(37,99,235,.7); }
+
+  /* Dark mode */
+  .dark .slot { border-color: #374151; }
+  .dark .slot.selected { background-color: rgba(99,102,241,.25); }
+  .dark .slot.scheduled-busy { background-color: rgba(107,114,128,.25); }
+  .dark .slot.scheduled-study { background-color: rgba(37,99,235,.25); }
+  .dark .slot.scheduled-break { background-color: rgba(34,197,94,.25); }
+  .dark #calendarGrid { background-color: #1f2937; border-color: #374151; }
 </style>
 {% endblock %}
 
@@ -16,12 +27,13 @@
 <div class="container mx-auto px-4 py-6">
   <div class="flex items-center justify-between mb-4">
     <div class="flex items-center gap-2">
-      <button id="prevWeek" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300">← Prev</button>
-      <button id="nextWeek" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300">Next →</button>
-      <button id="todayBtn" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300">Today</button>
+      <button id="prevWeek" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">← Prev</button>
+      <button id="nextWeek" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">Next →</button>
+      <button id="todayBtn" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">Today</button>
+      <button id="autoScheduleBtn" class="px-3 py-2 rounded bg-green-500 hover:bg-green-600 text-white font-medium">🤖 Auto-Schedule</button>
     </div>
-    <h1 id="weekLabel" class="text-2xl font-semibold"></h1>
-    <div class="text-sm text-gray-600">Click & drag to create a block</div>
+    <h1 id="weekLabel" class="text-2xl font-semibold dark:text-white"></h1>
+    <div class="text-sm text-gray-600 dark:text-gray-400">Click & drag to create a block</div>
   </div>
 
   <div id="calendarGrid" class="grid grid-cols-8 gap-0 border-t border-l border-gray-200 bg-white rounded">

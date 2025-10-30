@@ -38,10 +38,32 @@ let breakActivities = [];
 let currentBreakActivity = null;
 let currentAssignmentId = null;
 
+// Load assignments
+async function loadAssignments() {
+    try {
+        const response = await fetch('/api/assignments');
+        const assignments = await response.json();
+        const assignmentSelect = document.getElementById('assignment-select');
+
+        if (assignmentSelect) {
+            assignmentSelect.innerHTML = '<option value="">Select an assignment...</option>';
+            assignments.filter(a => !a.completed).forEach(assignment => {
+                const option = document.createElement('option');
+                option.value = assignment.id;
+                option.textContent = `${assignment.name} (Due: ${new Date(assignment.due_date).toLocaleDateString()})`;
+                assignmentSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading assignments:', error);
+    }
+}
+
 // Initialize the app
 async function init() {
     await loadSettings();
     await loadBreakActivities();
+    await loadAssignments();
     updateTimerDisplay();
     setupEventListeners();
     updateIntervalCount();
