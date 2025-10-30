@@ -28,6 +28,8 @@ class UserSettingsBase(BaseModel):
     auto_start_breaks: bool = True
     auto_start_pomodoros: bool = True
     long_break_delay: int = 15  # minutes before suggesting long break activities
+    preferred_start_hour: int = 9  # Preferred work start hour (0-23)
+    preferred_end_hour: int = 17  # Preferred work end hour (0-23)
 
 class UserSettingsCreate(UserSettingsBase):
     pass
