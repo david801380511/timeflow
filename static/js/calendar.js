@@ -11,6 +11,7 @@
   let blocks = [];
   let assignments = [];
   let settings = null;
+  let breakActivities = [];
 
   // Day view state
   let slots = [];
@@ -60,6 +61,18 @@
   function minutesToHM(mins){
     const h = Math.floor(mins/60), m = mins%60;
     return `${fmt2(h)}:${fmt2(m)}`;
+  }
+
+  function to12Hour(hour, minute = 0) {
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    return `${hour12}:${fmt2(minute)} ${period}`;
+  }
+
+  function minutesTo12Hour(mins){
+    const h = Math.floor(mins/60);
+    const m = mins%60;
+    return to12Hour(h, m);
   }
 
   function rowToMinutes(row){ return START_HOUR*60 + row*SLOT_MIN; }
@@ -188,7 +201,7 @@
       const mins = rowToMinutes(r);
       const timeCell = document.createElement('div');
       timeCell.className = "p-2 border-b border-r border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-400";
-      timeCell.textContent = minutesToHM(mins);
+      timeCell.textContent = minutesTo12Hour(mins);
       grid.appendChild(timeCell);
 
       const cell = document.createElement('div');
@@ -263,8 +276,8 @@
         if (r === startRow){
           const pill = document.createElement('span');
           pill.className = 'block-pill ' + (b.block_type === 'busy' ? 'busy' : isBreak ? 'break' : 'study');
-          const t1 = minutesToHM(startMins);
-          const t2 = minutesToHM(endMins);
+          const t1 = minutesTo12Hour(startMins);
+          const t2 = minutesTo12Hour(endMins);
           pill.textContent = `${b.title} (${t1}–${t2})`;
           const del = document.createElement('button');
           del.className = 'ml-2 text-xs hover:text-red-600';
@@ -461,10 +474,31 @@
     }
   }
 
+  async function loadBreakActivities(){
+    try {
+      const res = await fetch('/api/break-activities/');
+      breakActivities = await res.json();
+    } catch (e) {
+      console.error('Error loading break activities:', e);
+      breakActivities = [];
+    }
+  }
+
+  function getRandomBreakActivity(isLongBreak){
+    const type = isLongBreak ? 'long' : 'short';
+    const filtered = breakActivities.filter(a => a.activity_type === type);
+    if (filtered.length === 0) {
+      return isLongBreak ? 'Break' : 'Short Break';
+    }
+    const random = filtered[Math.floor(Math.random() * filtered.length)];
+    return random.name;
+  }
+
   // --- Auto-schedule ---
   async function autoScheduleAssignments(){
     if(!settings) await loadSettings();
     if(!assignments.length) await loadAssignments();
+    if(!breakActivities.length) await loadBreakActivities();
 
     const unscheduledAssignments = assignments.filter(a => {
       return !blocks.some(b => b.assignment_id === a.id);
@@ -604,14 +638,18 @@
         // Add break after session if there's more work remaining
         if(remainingMinutes > 0){
           // Use long break after every 4 sessions, short break otherwise
-          const breakDuration = (sessionCount % 4 === 0) ? longBreak : shortBreak;
+          const isLongBreak = (sessionCount % 4 === 0);
+          const breakDuration = isLongBreak ? longBreak : shortBreak;
           const breakEnd = new Date(currentTime);
           breakEnd.setMinutes(breakEnd.getMinutes() + breakDuration);
 
           // Only add break if it fits within working hours
           if (breakEnd.getHours() < END_HOUR) {
+            // Get random break activity
+            const breakActivityName = getRandomBreakActivity(isLongBreak);
+
             await createBlock({
-              title: `Break (${assignment.name})`,
+              title: breakActivityName,
               start: localDateTimeStr(currentTime),
               end: localDateTimeStr(breakEnd),
               block_type: 'busy'
@@ -760,6 +798,7 @@
     await loadSettings();
     await loadBlocks();
     await loadAssignments();
+    await loadBreakActivities();
     renderMonthView();
   })();
 })();

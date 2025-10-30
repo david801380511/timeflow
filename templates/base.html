@@ -6,12 +6,8 @@
     <title>TimeFlow - {% block title %}{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Dark mode initialization
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        // Dark mode enabled by default
+        document.documentElement.classList.add('dark');
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
@@ -44,9 +40,6 @@
                         <a href="/settings" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition duration-150 ease-in-out">
                             Settings
                         </a>
-                        <button id="darkModeToggle" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition duration-150 ease-in-out">
-                            <i class="fas fa-moon"></i>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -59,31 +52,6 @@
     </main>
 
     <!-- Scripts -->
-    <script>
-        // Dark mode toggle - wait for DOM
-        document.addEventListener('DOMContentLoaded', function() {
-            const darkModeToggle = document.getElementById('darkModeToggle');
-            if (darkModeToggle) {
-                // Set initial icon
-                const isDark = document.documentElement.classList.contains('dark');
-                const icon = darkModeToggle.querySelector('i');
-                if (icon) {
-                    icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-                }
-
-                // Add click handler
-                darkModeToggle.addEventListener('click', () => {
-                    document.documentElement.classList.toggle('dark');
-                    const isDark = document.documentElement.classList.contains('dark');
-                    localStorage.theme = isDark ? 'dark' : 'light';
-                    const icon = darkModeToggle.querySelector('i');
-                    if (icon) {
-                        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-                    }
-                });
-            }
-        });
-    </script>
     <script src="{{ url_for('static', path='/js/assignments.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>

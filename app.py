@@ -39,9 +39,22 @@ async def create_assignment(
     db: Session = Depends(get_db)
 ):
     try:
+        # Check for duplicate assignment name
+        existing = db.query(models.Assignment).filter(
+            models.Assignment.name == name,
+            models.Assignment.completed == False
+        ).first()
+
+        if existing:
+            # Return error as JSON for better handling
+            return JSONResponse(
+                status_code=400,
+                content={"error": f"Assignment '{name}' already exists. Please use a different name."}
+            )
+
         # Convert string date to datetime
         due_date_obj = datetime.strptime(due_date, '%Y-%m-%dT%H:%M')
-        
+
         # Create new assignment
         new_assignment = models.Assignment(
             name=name,
@@ -50,13 +63,16 @@ async def create_assignment(
             description=description,
             priority=priority
         )
-        
+
         db.add(new_assignment)
         db.commit()
         return RedirectResponse(url="/", status_code=303)
     except Exception as e:
         db.rollback()
-        return {"error": str(e)}
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
 
 # Add a route to serve the timer page
 @app.get("/timer", response_class=HTMLResponse)
@@ -102,3 +118,31 @@ async def delete_assignment(assignment_id: int, db: Session = Depends(get_db)):
     db.delete(assignment)
     db.commit()
     return {"status": "success", "message": "Assignment deleted"}
+
+@app.post("/api/assignments/{assignment_id}/progress")
+async def update_assignment_progress(
+    assignment_id: int,
+    progress_minutes: int = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Update assignment progress by adding minutes worked"""
+    assignment = db.query(models.Assignment).filter(models.Assignment.id == assignment_id).first()
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+
+    assignment.time_spent = progress_minutes
+
+    # Mark as completed if time spent >= estimated time
+    if assignment.time_spent >= assignment.estimated_time:
+        assignment.completed = True
+        assignment.status = 'completed'
+    elif assignment.time_spent > 0:
+        assignment.status = 'in_progress'
+
+    db.commit()
+    return {
+        "status": "success",
+        "time_spent": assignment.time_spent,
+        "estimated_time": assignment.estimated_time,
+        "progress_percent": min(100, (assignment.time_spent / assignment.estimated_time * 100) if assignment.estimated_time > 0 else 0)
+    }
