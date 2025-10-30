@@ -1,8 +1,7 @@
 // DOM Elements
 const timeDisplay = document.getElementById('time-display');
-const startBtn = document.getElementById('start-btn');
-const pauseBtn = document.getElementById('pause-btn');
-const resetBtn = document.getElementById('reset-btn');
+const startPauseBtn = document.getElementById('start-pause');
+const resetBtn = document.getElementById('reset');
 const timerStatus = document.getElementById('timer-status');
 const intervalCount = document.getElementById('interval-count');
 const breakSuggestion = document.getElementById('break-suggestion');
@@ -50,7 +49,8 @@ async function loadAssignments() {
             assignments.filter(a => !a.completed).forEach(assignment => {
                 const option = document.createElement('option');
                 option.value = assignment.id;
-                option.textContent = `${assignment.name} (Due: ${new Date(assignment.due_date).toLocaleDateString()})`;
+                const dueDate = assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : 'No due date';
+                option.textContent = `${assignment.name} (Due: ${dueDate})`;
                 assignmentSelect.appendChild(option);
             });
         }
@@ -118,27 +118,47 @@ async function loadBreakActivities() {
 
 // Setup event listeners
 function setupEventListeners() {
-    startBtn.addEventListener('click', startTimer);
-    pauseBtn.addEventListener('click', pauseTimer);
-    resetBtn.addEventListener('click', resetTimer);
-    startBreakBtn.addEventListener('click', startBreak);
-    skipBreakBtn.addEventListener('click', skipBreak);
-    endBreakEarlyBtn.addEventListener('click', endBreakEarly);
-    assignmentSelect.addEventListener('change', handleAssignmentSelect);
+    if(startPauseBtn) {
+        startPauseBtn.addEventListener('click', toggleTimer);
+    }
+    if(resetBtn) {
+        resetBtn.addEventListener('click', resetTimer);
+    }
+    if(startBreakBtn) {
+        startBreakBtn.addEventListener('click', startBreak);
+    }
+    if(skipBreakBtn) {
+        skipBreakBtn.addEventListener('click', skipBreak);
+    }
+    if(endBreakEarlyBtn) {
+        endBreakEarlyBtn.addEventListener('click', endBreakEarly);
+    }
+    if(assignmentSelect) {
+        assignmentSelect.addEventListener('change', handleAssignmentSelect);
+    }
+}
+
+function toggleTimer() {
+    if (isRunning) {
+        pauseTimer();
+    } else {
+        startTimer();
+    }
 }
 
 // Timer functions
 function startTimer() {
     if (!isRunning) {
         isRunning = true;
-        startBtn.disabled = true;
-        pauseBtn.disabled = false;
-        
+        if(startPauseBtn) {
+            startPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        }
+
         // Start a new study session if not in break
         if (!isBreak) {
             startStudySession();
         }
-        
+
         timer = setInterval(updateTimer, 1000);
     }
 }
@@ -147,25 +167,29 @@ function pauseTimer() {
     if (isRunning) {
         clearInterval(timer);
         isRunning = false;
-        startBtn.disabled = false;
-        pauseBtn.disabled = true;
+        if(startPauseBtn) {
+            startPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
     }
 }
 
 function resetTimer() {
     clearInterval(timer);
     isRunning = false;
-    startBtn.disabled = false;
-    pauseBtn.disabled = true;
-    
+    if(startPauseBtn) {
+        startPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+    }
+
     // Reset to work interval if not in break
     if (!isBreak) {
         timeLeft = settings.work_interval * 60;
         updateTimerDisplay();
     }
-    
+
     // Hide break suggestion if showing
-    breakSuggestion.classList.add('hidden');
+    if(breakSuggestion) {
+        breakSuggestion.classList.add('hidden');
+    }
 }
 
 function updateTimer() {

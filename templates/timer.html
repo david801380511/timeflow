@@ -93,24 +93,7 @@
                 </div>
             </div>
 
-            <!-- Current Assignment -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold mb-4">Current Assignment</h3>
-                <select id="assignment-select" class="w-full p-2 border rounded">
-                    <option value="">Select an assignment...</option>
-                    {% for assignment in assignments %}
-                    <option value="{{ assignment.id }}">{{ assignment.name }}</option>
-                    {% endfor %}
-                </select>
-                <div id="assignment-details" class="mt-4 p-4 bg-gray-50 rounded hidden">
-                    <h4 id="assignment-name" class="font-semibold text-lg"></h4>
-                    <p id="assignment-due" class="text-gray-600"></p>
-                    <p id="assignment-progress" class="mt-2"></p>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
+            <!-- Assignment details are shown via JS when selected above -->
 
             <!-- Stats -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
