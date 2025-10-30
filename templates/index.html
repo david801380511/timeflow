@@ -20,6 +20,14 @@
                     <label for="due_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Due Date & Time</label>
                     <input type="datetime-local" id="due_date" name="due_date" required
                            class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:[color-scheme:dark]">
+                    <script>
+                        // Set min to current date/time to prevent past dates
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const now = new Date();
+                            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                            document.getElementById('due_date').min = now.toISOString().slice(0, 16);
+                        });
+                    </script>
                 </div>
 
                 <div>

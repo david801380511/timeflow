@@ -4,44 +4,44 @@
 
 {% block content %}
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-center mb-8">Settings</h1>
+        <h1 class="text-3xl font-bold text-center mb-8 dark:text-white">Settings</h1>
 
-        <div class="bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
             <!-- Timer Settings -->
             <div class="mb-12">
-                <h2 class="text-2xl font-semibold mb-6 pb-2 border-b">Timer Settings</h2>
+                <h2 class="text-2xl font-semibold mb-6 pb-2 border-b dark:border-gray-700 dark:text-white">Timer Settings</h2>
                 <form id="timer-settings" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="work-interval" class="block text-sm font-medium text-gray-700 mb-1">Work Interval (minutes)</label>
+                            <label for="work-interval" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Work Interval (minutes)</label>
                             <input type="number" id="work-interval" name="work_interval" min="1" max="120" 
-                                   class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
-                            <label for="short-break" class="block text-sm font-medium text-gray-700 mb-1">Short Break (minutes)</label>
+                            <label for="short-break" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Short Break (minutes)</label>
                             <input type="number" id="short-break" name="short_break" min="1" max="30" 
-                                   class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
-                            <label for="long-break" class="block text-sm font-medium text-gray-700 mb-1">Long Break (minutes)</label>
+                            <label for="long-break" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Long Break (minutes)</label>
                             <input type="number" id="long-break" name="long_break" min="1" max="60" 
-                                   class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
-                            <label for="short-breaks-before-long" class="block text-sm font-medium text-gray-700 mb-1">Short Breaks Before Long Break</label>
+                            <label for="short-breaks-before-long" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Short Breaks Before Long Break</label>
                             <input type="number" id="short-breaks-before-long" name="short_breaks_before_long" min="1" max="10" 
-                                   class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <!-- Time Limit Settings (Added) -->
                         <div class="mb-12">
-                    <h2 class="text-2xl font-semibold mb-6 pb-2 border-b">Time Limit</h2>
+                    <h2 class="text-2xl font-semibold mb-6 pb-2 border-b dark:border-gray-700 dark:text-white">Time Limit</h2>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
     <div class="md:col-span-1">
-      <label for="daily-limit-minutes" class="block text-sm font-medium text-gray-700 mb-1">
+      <label for="daily-limit-minutes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
         Daily Study Limit (minutes)
       </label>
       <input id="daily-limit-minutes" type="number" min="1" max="1440" step="5"
-             class="w-full p-2 border rounded" placeholder="e.g., 180">
+             class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white" placeholder="e.g., 180">
     </div>
     <div>
       <button id="save-daily-limit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
@@ -58,14 +58,14 @@
                         <div class="flex items-center">
                             <input type="checkbox" id="auto-start-breaks" name="auto_start_breaks" 
                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="auto-start-breaks" class="ml-2 block text-sm text-gray-700">
+                            <label for="auto-start-breaks" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                                 Auto-start breaks
                             </label>
                         </div>
                         <div class="flex items-center">
                             <input type="checkbox" id="auto-start-pomodoros" name="auto_start_pomodoros" 
                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="auto-start-pomodoros" class="ml-2 block text-sm text-gray-700">
+                            <label for="auto-start-pomodoros" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                                 Auto-start next pomodoro
                             </label>
                         </div>
@@ -82,7 +82,7 @@
             <!-- Break Activities -->
             <div class="mb-12">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-semibold pb-2 border-b">Break Activities</h2>
+                    <h2 class="text-2xl font-semibold pb-2 border-b dark:border-gray-700 dark:text-white">Break Activities</h2>
                     <button id="add-activity-btn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                         <i class="fas fa-plus"></i> Add Activity
                     </button>
@@ -98,20 +98,20 @@
 
             <!-- Notification Settings -->
             <div>
-                <h2 class="text-2xl font-semibold mb-6 pb-2 border-b">Notification Settings</h2>
+                <h2 class="text-2xl font-semibold mb-6 pb-2 border-b dark:border-gray-700 dark:text-white">Notification Settings</h2>
                 <form id="notification-settings" class="space-y-6">
                     <div class="space-y-4">
                         <div class="flex items-center">
                             <input type="checkbox" id="enable-notifications" name="enable_notifications" 
                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="enable-notifications" class="ml-2 block text-sm text-gray-700">
+                            <label for="enable-notifications" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                                 Enable desktop notifications
                             </label>
                         </div>
                         <div class="flex items-center">
                             <input type="checkbox" id="enable-sound" name="enable_sound" 
                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="enable-sound" class="ml-2 block text-sm text-gray-700">
+                            <label for="enable-sound" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                                 Enable sound notifications
                             </label>
                         </div>
@@ -136,37 +136,37 @@
                 <input type="hidden" id="activity-id">
                 
                 <div>
-                    <label for="activity-name" class="block text-sm font-medium text-gray-700 mb-1">Activity Name</label>
+                    <label for="activity-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Activity Name</label>
                     <input type="text" id="activity-name" name="name" required
-                           class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                           class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 
                 <div>
-                    <label for="activity-description" class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                    <label for="activity-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description (optional)</label>
                     <textarea id="activity-description" name="description" rows="2"
-                              class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                              class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="activity-type" class="block text-sm font-medium text-gray-700 mb-1">Activity Type</label>
+                        <label for="activity-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Activity Type</label>
                         <select id="activity-type" name="activity_type" required
-                                class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="short">Short Break</option>
                             <option value="long">Long Break</option>
                         </select>
                     </div>
                     
                     <div>
-                        <label for="activity-duration" class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
+                        <label for="activity-duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Duration (minutes)</label>
                         <input type="number" id="activity-duration" name="duration" min="1" max="120"
-                               class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
                 
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" id="cancel-activity" 
-                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Cancel
                     </button>
                     <button type="submit" 
@@ -186,19 +186,19 @@
                 <input type="hidden" id="activity-id">
                 
                 <div>
-                    <label for="activity-name" class="block text-sm font-medium text-gray-700 mb-1">Activity Name</label>
+                    <label for="activity-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Activity Name</label>
                     <input type="text" id="activity-name" name="name" required 
                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
                 
                 <div>
-                    <label for="activity-description" class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                    <label for="activity-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description (optional)</label>
                     <textarea id="activity-description" name="description" rows="2"
                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                 </div>
                 
                 <div>
-                    <label for="activity-type" class="block text-sm font-medium text-gray-700 mb-1">Activity Type</label>
+                    <label for="activity-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Activity Type</label>
                     <select id="activity-type" name="activity_type" required
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="short">Short Break</option>
@@ -207,7 +207,7 @@
                 </div>
                 
                 <div>
-                    <label for="activity-duration" class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes, optional)</label>
+                    <label for="activity-duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Duration (minutes, optional)</label>
                     <input type="number" id="activity-duration" name="duration" min="1" max="60"
                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                     <p class="mt-1 text-sm text-gray-500">Leave empty to use default break duration</p>
@@ -215,7 +215,7 @@
                 
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" id="cancel-activity" 
-                            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Cancel
                     </button>
                     <button type="submit" 
