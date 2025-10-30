@@ -491,28 +491,71 @@
   async function scheduleAssignment(assignment){
     const workInterval = settings.work_interval || 25;
     const shortBreak = settings.short_break || 5;
+    const longBreak = settings.long_break || 15;
     const totalMinutes = assignment.estimated_time;
 
+    // Calculate how many days we have until due date
     const now = new Date();
-    let currentTime = new Date(Math.max(now, getMonthStart(currentMonth)));
-    currentTime.setMinutes(Math.ceil(currentTime.getMinutes() / 30) * 30);
+    now.setHours(0, 0, 0, 0);
+
+    let dueDate = assignment.due_date ? new Date(assignment.due_date) : null;
+    if (dueDate) {
+      dueDate.setHours(23, 59, 59, 999);
+    }
+
+    // If no due date or due date is in the past, schedule starting from now over next 7 days
+    if (!dueDate || dueDate < now) {
+      dueDate = new Date(now);
+      dueDate.setDate(dueDate.getDate() + 7);
+    }
+
+    const daysAvailable = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+    const daysToUse = Math.max(1, Math.min(daysAvailable, 14)); // Use up to 14 days max
+
+    // Calculate sessions needed
+    const totalSessions = Math.ceil(totalMinutes / workInterval);
+
+    // Distribute sessions across days (max 4 sessions per day to avoid burnout)
+    const maxSessionsPerDay = 4;
+    const sessionsPerDay = Math.min(maxSessionsPerDay, Math.ceil(totalSessions / daysToUse));
+
+    // Start scheduling from now or start of current month, whichever is later
+    let currentDay = new Date(Math.max(now, getMonthStart(currentMonth)));
+    currentDay.setHours(START_HOUR, 0, 0, 0);
 
     let remainingMinutes = totalMinutes;
     let sessionCount = 0;
+    let consecutiveSessionsToday = 0;
+    let currentTime = new Date(currentDay);
 
-    while(remainingMinutes > 0){
-      if(currentTime.getHours() < START_HOUR){
-        currentTime.setHours(START_HOUR, 0, 0, 0);
-      }
-      if(currentTime.getHours() >= END_HOUR){
-        currentTime.setDate(currentTime.getDate() + 1);
-        currentTime.setHours(START_HOUR, 0, 0, 0);
+    // Round to next 30-minute slot
+    currentTime.setMinutes(Math.ceil(currentTime.getMinutes() / 30) * 30);
+
+    while(remainingMinutes > 0 && currentDay <= dueDate){
+      // Move to next day if we've reached the session limit for today
+      if (consecutiveSessionsToday >= sessionsPerDay) {
+        currentDay.setDate(currentDay.getDate() + 1);
+        currentDay.setHours(START_HOUR, 0, 0, 0);
+        currentTime = new Date(currentDay);
+        consecutiveSessionsToday = 0;
         continue;
       }
 
-      if(await isSlotAvailable(currentTime, workInterval)){
+      // If we're past working hours, move to next day
+      if(currentTime.getHours() >= END_HOUR || currentTime.getHours() < START_HOUR){
+        currentDay.setDate(currentDay.getDate() + 1);
+        currentDay.setHours(START_HOUR, 0, 0, 0);
+        currentTime = new Date(currentDay);
+        consecutiveSessionsToday = 0;
+        continue;
+      }
+
+      // Check if slot is available
+      const sessionDuration = Math.min(workInterval, remainingMinutes);
+      if(await isSlotAvailable(currentTime, sessionDuration)){
+        // Create work block
         const endTime = new Date(currentTime);
-        endTime.setMinutes(endTime.getMinutes() + Math.min(workInterval, remainingMinutes));
+        endTime.setMinutes(endTime.getMinutes() + sessionDuration);
 
         await createBlock({
           title: assignment.name,
@@ -522,27 +565,52 @@
           assignment_id: assignment.id
         });
 
-        remainingMinutes -= workInterval;
+        remainingMinutes -= sessionDuration;
         sessionCount++;
-        currentTime = endTime;
+        consecutiveSessionsToday++;
+        currentTime = new Date(endTime);
 
+        // Add break after session if there's more work remaining
         if(remainingMinutes > 0){
-          const breakTime = new Date(currentTime);
-          const breakEnd = new Date(breakTime);
-          breakEnd.setMinutes(breakEnd.getMinutes() + shortBreak);
+          // Use long break after every 4 sessions, short break otherwise
+          const breakDuration = (sessionCount % 4 === 0) ? longBreak : shortBreak;
+          const breakEnd = new Date(currentTime);
+          breakEnd.setMinutes(breakEnd.getMinutes() + breakDuration);
 
-          await createBlock({
-            title: `Break (${assignment.name})`,
-            start: localDateTimeStr(breakTime),
-            end: localDateTimeStr(breakEnd),
-            block_type: 'busy'
-          });
-
-          currentTime = breakEnd;
+          // Only add break if it fits within working hours
+          if (breakEnd.getHours() < END_HOUR) {
+            await createBlock({
+              title: `Break (${assignment.name})`,
+              start: localDateTimeStr(currentTime),
+              end: localDateTimeStr(breakEnd),
+              block_type: 'busy'
+            });
+            currentTime = new Date(breakEnd);
+          } else {
+            // Break would go past working hours, move to next day
+            currentDay.setDate(currentDay.getDate() + 1);
+            currentDay.setHours(START_HOUR, 0, 0, 0);
+            currentTime = new Date(currentDay);
+            consecutiveSessionsToday = 0;
+          }
         }
-      }else{
+      } else {
+        // Slot not available, try next 30-minute slot
         currentTime.setMinutes(currentTime.getMinutes() + 30);
+
+        // If we've tried too many slots in one day, move to next day
+        if (currentTime.getHours() >= END_HOUR - 1) {
+          currentDay.setDate(currentDay.getDate() + 1);
+          currentDay.setHours(START_HOUR, 0, 0, 0);
+          currentTime = new Date(currentDay);
+          consecutiveSessionsToday = 0;
+        }
       }
+    }
+
+    // Warn if we couldn't schedule everything
+    if (remainingMinutes > 0) {
+      console.warn(`Could not schedule ${remainingMinutes} minutes for assignment: ${assignment.name}`);
     }
   }
 
