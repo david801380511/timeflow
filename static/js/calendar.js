@@ -3,16 +3,41 @@
   const START_HOUR = 6;
   const END_HOUR = 22;
   const SLOT_MIN = 30; // minutes
-  const DAYS = 7;      // Mon..Sun
+
+  // --- State ---
+  let currentView = 'month'; // 'month' or 'day'
+  let currentMonth = new Date();
+  let currentDay = new Date();
+  let blocks = [];
+  let assignments = [];
+  let settings = null;
+
+  // Day view state
+  let slots = [];
+  let isSelecting = false;
+  let selStart = null;
+  let selEnd = null;
 
   // --- Elements ---
-  const grid = document.getElementById('calendarGrid');
-  const weekLabel = document.getElementById('weekLabel');
-  const prevWeekBtn = document.getElementById('prevWeek');
-  const nextWeekBtn = document.getElementById('nextWeek');
-  const todayBtn   = document.getElementById('todayBtn');
+  // Month view
+  const monthView = document.getElementById('monthView');
+  const dayView = document.getElementById('dayView');
+  const monthGrid = document.getElementById('monthGrid');
+  const monthLabel = document.getElementById('monthLabel');
+  const prevMonthBtn = document.getElementById('prevMonth');
+  const nextMonthBtn = document.getElementById('nextMonth');
+  const todayMonthBtn = document.getElementById('todayMonthBtn');
   const autoScheduleBtn = document.getElementById('autoScheduleBtn');
+  const clearCalendarBtn = document.getElementById('clearCalendarBtn');
 
+  // Day view
+  const grid = document.getElementById('calendarGrid');
+  const dayLabel = document.getElementById('dayLabel');
+  const backToMonthBtn = document.getElementById('backToMonth');
+  const prevDayBtn = document.getElementById('prevDay');
+  const nextDayBtn = document.getElementById('nextDay');
+
+  // Modal
   const modal = document.getElementById('blockModal');
   const blkTitle = document.getElementById('blkTitle');
   const blkType = document.getElementById('blkType');
@@ -21,87 +46,159 @@
   const blkCancel = document.getElementById('blkCancel');
   const blkSave = document.getElementById('blkSave');
 
-  // --- State ---
-  let weekStart = mondayOf(new Date());
-  let slots = [];
-  let isSelecting = false;
-  let selStart = null;
-  let selEnd = null;
-  let assignments = [];
-  let blocks = [];
-  let settings = null;
-
   // --- Utilities ---
   function fmt2(n){ return String(n).padStart(2,'0'); }
-  function mondayOf(d){
-    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const day = (x.getDay() + 6) % 7;
-    x.setDate(x.getDate() - day);
-    x.setHours(0,0,0,0);
-    return x;
+
+  function localDateStr(d){
+    return `${d.getFullYear()}-${fmt2(d.getMonth()+1)}-${fmt2(d.getDate())}`;
   }
-  function addDays(d, days){ const x = new Date(d); x.setDate(x.getDate()+days); return x; }
-  function localDateStr(d){ return `${d.getFullYear()}-${fmt2(d.getMonth()+1)}-${fmt2(d.getDate())}`; }
-  function localDateTimeStr(d){ return `${localDateStr(d)}T${fmt2(d.getHours())}:${fmt2(d.getMinutes())}:00`; }
+
+  function localDateTimeStr(d){
+    return `${localDateStr(d)}T${fmt2(d.getHours())}:${fmt2(d.getMinutes())}:00`;
+  }
+
   function minutesToHM(mins){
     const h = Math.floor(mins/60), m = mins%60;
     return `${fmt2(h)}:${fmt2(m)}`;
   }
+
   function rowToMinutes(row){ return START_HOUR*60 + row*SLOT_MIN; }
   function minutesToRow(mins){ return Math.round((mins - START_HOUR*60) / SLOT_MIN); }
-
-  function clearSelection(){
-    if (!selStart || !selEnd) return;
-    const [a,b] = normRange(selStart, selEnd);
-    for(let day=a.day; day<=b.day; day++){
-      for (let r=(day===a.day?a.row:0); r<=(day===b.day?b.row:rowsPerDay()-1); r++){
-        slots[day][r].classList.remove('selected');
-      }
-    }
-    selStart = selEnd = null;
-  }
-
   function rowsPerDay(){ return ((END_HOUR*60 - START_HOUR*60)/SLOT_MIN)|0; }
-  function normRange(s,e){
-    const cmp = (s.day - e.day) || (s.row - e.row);
-    return (cmp<=0) ? [s,e] : [e,s];
+
+  function addDays(d, days){
+    const x = new Date(d);
+    x.setDate(x.getDate()+days);
+    return x;
   }
 
-  function updateWeekLabel(){
-    const end = addDays(weekStart, 6);
-    weekLabel.textContent = `${localDateStr(weekStart)} – ${localDateStr(end)}`;
-    for (let i=0;i<DAYS;i++){
-      const d = addDays(weekStart, i);
-      const el = document.getElementById(`dayHead${i}`);
-      const weekday = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][i];
-      el.textContent = `${weekday} ${d.getMonth()+1}/${d.getDate()}`;
+  function isSameDay(d1, d2) {
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+  }
+
+  function getMonthStart(d) {
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  }
+
+  function getMonthEnd(d) {
+    return new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  }
+
+  function getCalendarStart(monthStart) {
+    // Go back to Sunday
+    const day = monthStart.getDay();
+    return addDays(monthStart, -day);
+  }
+
+  // --- Month View Functions ---
+  function renderMonthView() {
+    const monthStart = getMonthStart(currentMonth);
+    const monthEnd = getMonthEnd(currentMonth);
+    const calendarStart = getCalendarStart(monthStart);
+
+    // Update label
+    monthLabel.textContent = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    // Clear existing days (keep headers)
+    while (monthGrid.children.length > 7) {
+      monthGrid.removeChild(monthGrid.lastChild);
+    }
+
+    // Render 6 weeks (42 days)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 42; i++) {
+      const date = addDays(calendarStart, i);
+      const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
+      const isToday = isSameDay(date, today);
+
+      const dayCell = document.createElement('div');
+      dayCell.className = `month-day p-2 border border-gray-200 dark:border-gray-700 ${
+        !isCurrentMonth ? 'other-month' : ''
+      } ${isToday ? 'today' : ''} dark:text-white`;
+
+      // Day number
+      const dayNum = document.createElement('div');
+      dayNum.className = 'font-semibold mb-1';
+      dayNum.textContent = date.getDate();
+      dayCell.appendChild(dayNum);
+
+      // Event dots
+      const dayBlocks = getBlocksForDay(date);
+      if (dayBlocks.length > 0) {
+        const dotsContainer = document.createElement('div');
+        dotsContainer.className = 'flex flex-wrap gap-1';
+
+        const maxDots = 5;
+        for (let j = 0; j < Math.min(dayBlocks.length, maxDots); j++) {
+          const block = dayBlocks[j];
+          const isBreak = block.title && (block.title.toLowerCase().includes('break') || block.title.toLowerCase().includes('rest'));
+          const dotClass = isBreak ? 'break' : (block.block_type === 'busy' ? 'busy' : 'study');
+          const dot = document.createElement('span');
+          dot.className = `event-dot ${dotClass}`;
+          dot.title = block.title;
+          dotsContainer.appendChild(dot);
+        }
+
+        if (dayBlocks.length > maxDots) {
+          const more = document.createElement('span');
+          more.className = 'text-xs text-gray-500 dark:text-gray-400';
+          more.textContent = `+${dayBlocks.length - maxDots}`;
+          dotsContainer.appendChild(more);
+        }
+
+        dayCell.appendChild(dotsContainer);
+      }
+
+      // Click handler
+      dayCell.addEventListener('click', () => {
+        currentDay = new Date(date);
+        switchToDayView();
+      });
+
+      monthGrid.appendChild(dayCell);
     }
   }
 
-  // --- Build grid ---
-  function buildGrid(){
-    const totalRows = rowsPerDay();
-    while (grid.children.length > 8) grid.removeChild(grid.lastChild);
-    slots = Array.from({length:DAYS}, ()=> Array(totalRows).fill(null));
+  function getBlocksForDay(date) {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
 
-    for (let r=0; r<totalRows; r++){
+    return blocks.filter(b => {
+      const blockStart = new Date(b.start);
+      const blockEnd = new Date(b.end);
+      return (blockStart >= startOfDay && blockStart <= endOfDay) ||
+             (blockEnd >= startOfDay && blockEnd <= endOfDay) ||
+             (blockStart <= startOfDay && blockEnd >= endOfDay);
+    });
+  }
+
+  // --- Day View Functions ---
+  function buildDayGrid() {
+    const totalRows = rowsPerDay();
+    while (grid.children.length > 2) grid.removeChild(grid.lastChild);
+    slots = Array(totalRows).fill(null);
+
+    for (let r = 0; r < totalRows; r++) {
       const mins = rowToMinutes(r);
       const timeCell = document.createElement('div');
       timeCell.className = "p-2 border-b border-r border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-400";
       timeCell.textContent = minutesToHM(mins);
       grid.appendChild(timeCell);
 
-      for (let day=0; day<DAYS; day++){
-        const cell = document.createElement('div');
-        cell.className = "slot border-b border-r border-gray-200 dark:border-gray-700";
-        cell.dataset.day = String(day);
-        cell.dataset.row = String(r);
-        cell.addEventListener('mousedown', startSelect);
-        cell.addEventListener('mouseenter', growSelect);
-        cell.addEventListener('mouseup', endSelect);
-        slots[day][r] = cell;
-        grid.appendChild(cell);
-      }
+      const cell = document.createElement('div');
+      cell.className = "slot border-b border-r border-gray-200 dark:border-gray-700";
+      cell.dataset.row = String(r);
+      cell.addEventListener('mousedown', startSelect);
+      cell.addEventListener('mouseenter', growSelect);
+      cell.addEventListener('mouseup', endSelect);
+      slots[r] = cell;
+      grid.appendChild(cell);
     }
 
     document.addEventListener('mouseup', () => {
@@ -112,49 +209,143 @@
     }, { capture: true });
   }
 
+  function renderDayView() {
+    // Update label
+    dayLabel.textContent = currentDay.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    // Update header
+    const dayHead = document.getElementById('dayHead0');
+    if (dayHead) {
+      dayHead.textContent = currentDay.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+
+    // Clear and render blocks
+    clearScheduled();
+    renderBlocksForDay();
+  }
+
+  function clearScheduled(){
+    if (!slots) return;
+    grid.querySelectorAll('.slot.scheduled-busy, .slot.scheduled-study, .slot.scheduled-break').forEach(el=>{
+      el.classList.remove('scheduled-busy','scheduled-study','scheduled-break');
+      el.innerHTML = '';
+    });
+  }
+
+  function renderBlocksForDay() {
+    const dayBlocks = getBlocksForDay(currentDay);
+    const totalRows = rowsPerDay();
+
+    for (const b of dayBlocks) {
+      const s = new Date(b.start);
+      const e = new Date(b.end);
+
+      const startMins = s.getHours()*60 + s.getMinutes();
+      const endMins = e.getHours()*60 + e.getMinutes();
+      const startRow = Math.max(0, minutesToRow(startMins));
+      const endRow = Math.min(totalRows, minutesToRow(endMins));
+
+      const isBreak = b.title && (b.title.toLowerCase().includes('break') || b.title.toLowerCase().includes('rest'));
+      const cssClass = isBreak ? 'scheduled-break' : (b.block_type === 'busy' ? 'scheduled-busy' : 'scheduled-study');
+
+      for (let r=startRow; r<endRow; r++){
+        const cell = slots[r];
+        if (!cell) continue;
+        cell.classList.add(cssClass);
+        if (r === startRow){
+          const pill = document.createElement('span');
+          pill.className = 'block-pill ' + (b.block_type === 'busy' ? 'busy' : isBreak ? 'break' : 'study');
+          const t1 = minutesToHM(startMins);
+          const t2 = minutesToHM(endMins);
+          pill.textContent = `${b.title} (${t1}–${t2})`;
+          const del = document.createElement('button');
+          del.className = 'ml-2 text-xs hover:text-red-600';
+          del.textContent = '✕';
+          del.title = 'Delete';
+          del.addEventListener('click', async (ev)=>{
+            ev.stopPropagation();
+            ev.preventDefault();
+            if (!confirm('Delete this block?')) return;
+            const resp = await fetch(`/api/calendar/blocks/${b.id}`, { method: 'DELETE' });
+            if (resp.ok){
+              await loadBlocks();
+              if (currentView === 'day') {
+                renderDayView();
+              } else {
+                renderMonthView();
+              }
+            }else{
+              const ejson = await resp.json().catch(()=>({}));
+              alert(ejson.detail || 'Failed to delete block');
+            }
+          });
+          pill.appendChild(del);
+          cell.appendChild(pill);
+        }
+      }
+    }
+  }
+
+  // --- Selection Functions (Day View) ---
   function startSelect(e){
     isSelecting = true;
-    const day = parseInt(e.currentTarget.dataset.day,10);
     const row = parseInt(e.currentTarget.dataset.row,10);
-    selStart = {day,row};
-    selEnd = {day,row};
+    selStart = {row};
+    selEnd = {row};
     e.currentTarget.classList.add('selected');
   }
 
   function growSelect(e){
     if (!isSelecting) return;
-    const day = parseInt(e.currentTarget.dataset.day,10);
     const row = parseInt(e.currentTarget.dataset.row,10);
-    selEnd = {day,row};
+    selEnd = {row};
     const [a,b] = normRange(selStart, selEnd);
     Array.from(grid.querySelectorAll('.slot.selected')).forEach(el=>el.classList.remove('selected'));
-    for(let d=a.day; d<=b.day; d++){
-      for (let r=(d===a.day?a.row:0); r<=(d===b.day?b.row:rowsPerDay()-1); r++){
-        slots[d][r].classList.add('selected');
-      }
+    for (let r=a.row; r<=b.row; r++){
+      if (slots[r]) slots[r].classList.add('selected');
     }
   }
 
   function endSelect(e){
     if (!isSelecting) return;
     isSelecting = false;
-    const day = parseInt(e.currentTarget.dataset.day,10);
     const row = parseInt(e.currentTarget.dataset.row,10);
-    selEnd = {day,row};
+    selEnd = {row};
     finishSelection();
+  }
+
+  function normRange(s,e){
+    const cmp = s.row - e.row;
+    return (cmp<=0) ? [s,e] : [e,s];
+  }
+
+  function clearSelection(){
+    if (!selStart || !selEnd) return;
+    const [a,b] = normRange(selStart, selEnd);
+    for (let r=a.row; r<=b.row; r++){
+      if (slots[r]) slots[r].classList.remove('selected');
+    }
+    selStart = selEnd = null;
   }
 
   async function finishSelection(){
     if (!selStart || !selEnd) return;
     const [a,b] = normRange(selStart, selEnd);
-    const startDay = addDays(weekStart, a.day);
-    const endDay   = addDays(weekStart, b.day);
-    const startMins = rowToMinutes(a.row);
-    const endMins   = rowToMinutes(b.row + 1);
 
-    const start = new Date(startDay);
+    const startMins = rowToMinutes(a.row);
+    const endMins = rowToMinutes(b.row + 1);
+
+    const start = new Date(currentDay);
     start.setHours(Math.floor(startMins/60), startMins%60, 0, 0);
-    const end = new Date(endDay);
+    const end = new Date(currentDay);
     end.setHours(Math.floor(endMins/60), endMins%60, 0, 0);
 
     blkTitle.value = "";
@@ -184,7 +375,7 @@
           alert(e.detail || 'Failed to create block');
         }else{
           await loadBlocks();
-          renderBlocks();
+          renderDayView();
         }
       }catch(_){}
       clearSelection();
@@ -213,6 +404,23 @@
     blkSave.addEventListener('click', onSave, { once: true });
   }
 
+  // --- View Switching ---
+  function switchToMonthView() {
+    currentView = 'month';
+    monthView.classList.remove('hidden');
+    dayView.classList.add('hidden');
+    renderMonthView();
+  }
+
+  function switchToDayView() {
+    currentView = 'day';
+    monthView.classList.add('hidden');
+    dayView.classList.remove('hidden');
+    buildDayGrid();
+    renderDayView();
+  }
+
+  // --- Data Loading ---
   async function loadSettings(){
     try{
       const res = await fetch('/api/settings/');
@@ -235,95 +443,30 @@
     }
   }
 
-  function getWeekRange(){
-    const start = new Date(weekStart);
-    start.setHours(0,0,0,0);
-    const end = addDays(weekStart, 7);
-    end.setHours(0,0,0,0);
-    return { start: localDateTimeStr(start), end: localDateTimeStr(end) };
-  }
-
   async function loadBlocks(){
-    const {start,end} = getWeekRange();
-    const url = `/api/calendar/blocks?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
-    const res = await fetch(url);
-    blocks = await res.json();
-  }
+    try {
+      // Load blocks for entire month
+      const monthStart = getMonthStart(currentMonth);
+      const calendarStart = getCalendarStart(monthStart);
+      const calendarEnd = addDays(calendarStart, 42);
 
-  function clearScheduled(){
-    grid.querySelectorAll('.slot.scheduled-busy, .slot.scheduled-study, .slot.scheduled-break').forEach(el=>{
-      el.classList.remove('scheduled-busy','scheduled-study','scheduled-break');
-      el.innerHTML = '';
-    });
-  }
-
-  function renderBlocks(){
-    clearScheduled();
-    const totalRows = rowsPerDay();
-
-    // Group blocks by assignment
-    const assignmentBlocks = {};
-    for (const b of blocks){
-      if(b.assignment_id){
-        if(!assignmentBlocks[b.assignment_id]) assignmentBlocks[b.assignment_id] = [];
-        assignmentBlocks[b.assignment_id].push(b);
-      }
-    }
-
-    for (const b of blocks){
-      const s = new Date(b.start);
-      const e = new Date(b.end);
-      const dayIndex = Math.floor((s - weekStart) / (24*3600*1000));
-      if (dayIndex < 0 || dayIndex >= DAYS) continue;
-
-      const startMins = s.getHours()*60 + s.getMinutes();
-      const endMins = e.getHours()*60 + e.getMinutes();
-      const startRow = Math.max(0, minutesToRow(startMins));
-      const endRow = Math.min(totalRows, minutesToRow(endMins));
-
-      // Determine if this is a break block (check title)
-      const isBreak = b.title && (b.title.toLowerCase().includes('break') || b.title.toLowerCase().includes('rest'));
-      const cssClass = isBreak ? 'scheduled-break' : (b.block_type === 'busy' ? 'scheduled-busy' : 'scheduled-study');
-
-      for (let r=startRow; r<endRow; r++){
-        const cell = slots[dayIndex][r];
-        cell.classList.add(cssClass);
-        if (r === startRow){
-          const pill = document.createElement('span');
-          pill.className = 'block-pill ' + (b.block_type === 'busy' ? 'busy' : isBreak ? 'break' : 'study');
-          const t1 = minutesToHM(startMins);
-          const t2 = minutesToHM(endMins);
-          pill.textContent = `${b.title} (${t1}–${t2})`;
-          const del = document.createElement('button');
-          del.className = 'ml-2 text-xs hover:text-red-600';
-          del.textContent = '✕';
-          del.title = 'Delete';
-          del.addEventListener('click', async (ev)=>{
-            ev.stopPropagation();
-            if (!confirm('Delete this block?')) return;
-            const resp = await fetch(`/api/calendar/blocks/${b.id}`, { method: 'DELETE' });
-            if (resp.ok){
-              await loadBlocks();
-              renderBlocks();
-            }else{
-              const ejson = await resp.json().catch(()=>({}));
-              alert(ejson.detail || 'Failed to delete block');
-            }
-          });
-          pill.appendChild(del);
-          cell.appendChild(pill);
-        }
-      }
+      const start = localDateTimeStr(calendarStart);
+      const end = localDateTimeStr(calendarEnd);
+      const url = `/api/calendar/blocks?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+      const res = await fetch(url);
+      blocks = await res.json();
+    } catch (e) {
+      console.error('Error loading blocks:', e);
+      blocks = [];
     }
   }
 
-  // Auto-schedule assignments
+  // --- Auto-schedule ---
   async function autoScheduleAssignments(){
     if(!settings) await loadSettings();
     if(!assignments.length) await loadAssignments();
 
     const unscheduledAssignments = assignments.filter(a => {
-      // Check if assignment already has calendar blocks
       return !blocks.some(b => b.assignment_id === a.id);
     });
 
@@ -332,13 +475,16 @@
       return;
     }
 
-    // Schedule each assignment
     for(const assignment of unscheduledAssignments){
       await scheduleAssignment(assignment);
     }
 
     await loadBlocks();
-    renderBlocks();
+    if (currentView === 'month') {
+      renderMonthView();
+    } else {
+      renderDayView();
+    }
     alert('Assignments auto-scheduled successfully!');
   }
 
@@ -347,16 +493,14 @@
     const shortBreak = settings.short_break || 5;
     const totalMinutes = assignment.estimated_time;
 
-    // Find next available slot starting from now
     const now = new Date();
-    let currentTime = new Date(Math.max(now, weekStart));
-    currentTime.setMinutes(Math.ceil(currentTime.getMinutes() / 30) * 30); // Round to next 30min
+    let currentTime = new Date(Math.max(now, getMonthStart(currentMonth)));
+    currentTime.setMinutes(Math.ceil(currentTime.getMinutes() / 30) * 30);
 
     let remainingMinutes = totalMinutes;
     let sessionCount = 0;
 
     while(remainingMinutes > 0){
-      // Skip if outside working hours
       if(currentTime.getHours() < START_HOUR){
         currentTime.setHours(START_HOUR, 0, 0, 0);
       }
@@ -366,9 +510,7 @@
         continue;
       }
 
-      // Check if slot is available
       if(await isSlotAvailable(currentTime, workInterval)){
-        // Create work block
         const endTime = new Date(currentTime);
         endTime.setMinutes(endTime.getMinutes() + Math.min(workInterval, remainingMinutes));
 
@@ -384,7 +526,6 @@
         sessionCount++;
         currentTime = endTime;
 
-        // Add break if more work remaining
         if(remainingMinutes > 0){
           const breakTime = new Date(currentTime);
           const breakEnd = new Date(breakTime);
@@ -414,7 +555,7 @@
       const blockEnd = new Date(block.end);
 
       if(startTime < blockEnd && endTime > blockStart){
-        return false; // Overlaps
+        return false;
       }
     }
     return true;
@@ -436,40 +577,90 @@
     }
   }
 
-  // --- Week nav ---
-  prevWeekBtn.addEventListener('click', async ()=>{
-    weekStart = addDays(weekStart, -7);
-    updateWeekLabel();
-    buildGrid();
-    await loadBlocks();
-    renderBlocks();
-  });
-  nextWeekBtn.addEventListener('click', async ()=>{
-    weekStart = addDays(weekStart, 7);
-    updateWeekLabel();
-    buildGrid();
-    await loadBlocks();
-    renderBlocks();
-  });
-  todayBtn.addEventListener('click', async ()=>{
-    weekStart = mondayOf(new Date());
-    updateWeekLabel();
-    buildGrid();
-    await loadBlocks();
-    renderBlocks();
-  });
+  // --- Clear Calendar ---
+  async function clearCalendar() {
+    if (!confirm('Are you sure you want to clear ALL calendar blocks? This cannot be undone.')) {
+      return;
+    }
 
-  if(autoScheduleBtn){
+    try {
+      const deletePromises = blocks.map(block =>
+        fetch(`/api/calendar/blocks/${block.id}`, { method: 'DELETE' })
+      );
+      await Promise.all(deletePromises);
+      await loadBlocks();
+      if (currentView === 'month') {
+        renderMonthView();
+      } else {
+        renderDayView();
+      }
+      alert('Calendar cleared successfully!');
+    } catch (e) {
+      console.error('Error clearing calendar:', e);
+      alert('Failed to clear calendar');
+    }
+  }
+
+  // --- Event Listeners ---
+  if (prevMonthBtn) {
+    prevMonthBtn.addEventListener('click', async () => {
+      currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
+      await loadBlocks();
+      renderMonthView();
+    });
+  }
+
+  if (nextMonthBtn) {
+    nextMonthBtn.addEventListener('click', async () => {
+      currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+      await loadBlocks();
+      renderMonthView();
+    });
+  }
+
+  if (todayMonthBtn) {
+    todayMonthBtn.addEventListener('click', async () => {
+      currentMonth = new Date();
+      await loadBlocks();
+      renderMonthView();
+    });
+  }
+
+  if (backToMonthBtn) {
+    backToMonthBtn.addEventListener('click', () => {
+      switchToMonthView();
+    });
+  }
+
+  if (prevDayBtn) {
+    prevDayBtn.addEventListener('click', async () => {
+      currentDay = addDays(currentDay, -1);
+      await loadBlocks();
+      renderDayView();
+    });
+  }
+
+  if (nextDayBtn) {
+    nextDayBtn.addEventListener('click', async () => {
+      currentDay = addDays(currentDay, 1);
+      await loadBlocks();
+      renderDayView();
+    });
+  }
+
+  if (autoScheduleBtn) {
     autoScheduleBtn.addEventListener('click', autoScheduleAssignments);
+  }
+
+  if (clearCalendarBtn) {
+    clearCalendarBtn.addEventListener('click', clearCalendar);
   }
 
   // --- Init ---
   (async function init(){
     await loadSettings();
-    updateWeekLabel();
-    buildGrid();
     await loadBlocks();
     await loadAssignments();
-    renderBlocks();
+    renderMonthView();
   })();
 })();

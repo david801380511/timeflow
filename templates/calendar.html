@@ -3,6 +3,39 @@
 
 {% block extra_css %}
 <style>
+  /* Month view styles */
+  .month-day {
+    min-height: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .month-day:hover {
+    background-color: rgba(99,102,241,.05);
+  }
+  .dark .month-day:hover {
+    background-color: rgba(99,102,241,.1);
+  }
+  .month-day.other-month {
+    opacity: 0.4;
+  }
+  .month-day.today {
+    background-color: rgba(99,102,241,.1);
+  }
+  .dark .month-day.today {
+    background-color: rgba(99,102,241,.15);
+  }
+  .event-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 1px;
+  }
+  .event-dot.study { background-color: #2563eb; }
+  .event-dot.busy { background-color: #6b7280; }
+  .event-dot.break { background-color: #22c55e; }
+
+  /* Day view styles */
   .slot { min-height: 42px; border-bottom: 1px solid #e5e7eb; }
   .slot.selected { background-color: rgba(99,102,241,.15); }
   .slot.scheduled-busy { background-color: rgba(107,114,128,.15); }
@@ -20,34 +53,57 @@
   .dark .slot.scheduled-study { background-color: rgba(37,99,235,.25); }
   .dark .slot.scheduled-break { background-color: rgba(34,197,94,.25); }
   .dark #calendarGrid { background-color: #1f2937; border-color: #374151; }
+  .dark #monthGrid { background-color: #1f2937; border-color: #374151; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-6">
-  <div class="flex items-center justify-between mb-4">
-    <div class="flex items-center gap-2">
-      <button id="prevWeek" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">← Prev</button>
-      <button id="nextWeek" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">Next →</button>
-      <button id="todayBtn" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">Today</button>
-      <button id="autoScheduleBtn" class="px-3 py-2 rounded bg-green-500 hover:bg-green-600 text-white font-medium">🤖 Auto-Schedule</button>
+  <!-- Month View -->
+  <div id="monthView">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2">
+        <button id="prevMonth" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">← Prev</button>
+        <button id="nextMonth" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">Next →</button>
+        <button id="todayMonthBtn" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">Today</button>
+        <button id="autoScheduleBtn" class="px-3 py-2 rounded bg-green-500 hover:bg-green-600 text-white font-medium">🤖 Auto-Schedule</button>
+        <button id="clearCalendarBtn" class="px-3 py-2 rounded bg-red-500 hover:bg-red-600 text-white font-medium">🗑️ Clear Calendar</button>
+      </div>
+      <h1 id="monthLabel" class="text-2xl font-semibold dark:text-white"></h1>
+      <div class="text-sm text-gray-600 dark:text-gray-400">Click a day to view details</div>
     </div>
-    <h1 id="weekLabel" class="text-2xl font-semibold dark:text-white"></h1>
-    <div class="text-sm text-gray-600 dark:text-gray-400">Click & drag to create a block</div>
+
+    <div id="monthGrid" class="grid grid-cols-7 gap-0 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded">
+      <!-- Day headers -->
+      <div class="p-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-sm font-medium text-center dark:text-white">Sun</div>
+      <div class="p-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-sm font-medium text-center dark:text-white">Mon</div>
+      <div class="p-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-sm font-medium text-center dark:text-white">Tue</div>
+      <div class="p-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-sm font-medium text-center dark:text-white">Wed</div>
+      <div class="p-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-sm font-medium text-center dark:text-white">Thu</div>
+      <div class="p-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-sm font-medium text-center dark:text-white">Fri</div>
+      <div class="p-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 text-sm font-medium text-center dark:text-white">Sat</div>
+      <!-- Days are injected by JS -->
+    </div>
   </div>
 
-  <div id="calendarGrid" class="grid grid-cols-8 gap-0 border-t border-l border-gray-200 bg-white rounded">
-    <!-- Column headers -->
-    <div class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium">Time</div>
-    <div id="dayHead0" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
-    <div id="dayHead1" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
-    <div id="dayHead2" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
-    <div id="dayHead3" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
-    <div id="dayHead4" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
-    <div id="dayHead5" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
-    <div id="dayHead6" class="p-2 bg-gray-50 border-b border-r border-gray-200 text-sm font-medium"></div>
+  <!-- Day View (hidden by default) -->
+  <div id="dayView" class="hidden">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2">
+        <button id="backToMonth" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">← Back to Month</button>
+        <button id="prevDay" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">← Prev Day</button>
+        <button id="nextDay" class="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white">Next Day →</button>
+      </div>
+      <h1 id="dayLabel" class="text-2xl font-semibold dark:text-white"></h1>
+      <div class="text-sm text-gray-600 dark:text-gray-400">Click & drag to create a block</div>
+    </div>
 
-    <!-- The time rows + day slots are injected by JS -->
+    <div id="calendarGrid" class="grid grid-cols-2 gap-0 border-t border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded">
+      <!-- Column headers -->
+      <div class="p-2 bg-gray-50 dark:bg-gray-700 border-b border-r border-gray-200 dark:border-gray-600 text-sm font-medium dark:text-white">Time</div>
+      <div id="dayHead0" class="p-2 bg-gray-50 dark:bg-gray-700 border-b border-r border-gray-200 dark:border-gray-600 text-sm font-medium dark:text-white"></div>
+      <!-- The time rows + day slots are injected by JS -->
+    </div>
   </div>
 </div>
 
