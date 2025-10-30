@@ -10,12 +10,14 @@ from backend.database import get_db
 from backend.routes.break_routes import router as break_router
 from backend.routes.calendar_routes import router as calendar_router
 from backend.routes.limit_routes import router as limit_router
+from backend.routes.sprint_routes import router as sprint_router
 
 
 app = FastAPI()
 app.include_router(break_router, prefix="/api", tags=["break"])
 app.include_router(calendar_router)
 app.include_router(limit_router, prefix="/api", tags=["limits"])
+app.include_router(sprint_router, tags=["sprints"])
 
 
 templates = Jinja2Templates(directory="templates")

@@ -3,7 +3,10 @@
     "allow": [
       "Bash(python -c:*)",
       "Bash(pip install:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push)",
+      "Bash(python -m uvicorn:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
