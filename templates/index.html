@@ -65,7 +65,7 @@
                             <div class="flex justify-between items-start gap-4">
                                 <div class="flex-1">
                                     <h3 class="text-lg font-medium dark:text-white">{{ assignment.name }}</h3>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Due: {{ assignment.due_date.strftime('%B %d, %Y at %-I:%M %p') }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Due: {{ assignment.due_date.strftime('%B %d, %Y at %I:%M %p') }}</p>
                                     <p class="text-sm text-gray-600 dark:text-gray-400">Estimated Time: {{ assignment.estimated_time }} minutes</p>
                                     {% if assignment.description %}
                                         <p class="mt-2 text-gray-700 dark:text-gray-300">{{ assignment.description }}</p>

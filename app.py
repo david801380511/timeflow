@@ -84,30 +84,24 @@ async def timer_page(request: Request):
 async def settings_page(request: Request):
     return templates.TemplateResponse("settings.html", {"request": request})
 
-@app.get("/api/assignments")
-async def get_assignments(db: Session = Depends(get_db)):
-    """Get all assignments as JSON"""
-    print("DEBUG: get_assignments called")
-    assignments = db.query(models.Assignment).all()
-    print(f"DEBUG: Found {len(assignments)} assignments")
+# Assignments API endpoint is now in calendar_routes.py to avoid duplication
+
+@app.get("/api/assignments/debug")
+async def debug_assignments(db: Session = Depends(get_db)):
+    """Debug endpoint to check assignment data"""
+    assignments = db.query(models.Assignment).filter(models.Assignment.completed == False).all()
     result = []
     for a in assignments:
-        item = {
+        result.append({
             "id": a.id,
             "name": a.name,
-            "description": a.description if a.description else "",
+            "description": a.description or "",
             "due_date": a.due_date.isoformat() if a.due_date else None,
-            "estimated_time": a.estimated_time if a.estimated_time else 0,
-            "time_spent": a.time_spent if a.time_spent else 0,
-            "priority": a.priority if a.priority else 2,
+            "estimated_time": a.estimated_time or 0,
+            "time_spent": a.time_spent or 0,
+            "priority": a.priority or 2,
             "completed": a.completed if a.completed is not None else False,
-            "sprint": a.sprint if a.sprint else "",
-            "assignee": a.assignee if a.assignee else "",
-            "status": a.status if a.status else "new"
-        }
-        print(f"DEBUG: Assignment {a.id}: {item}")
-        result.append(item)
-    print(f"DEBUG: Returning {len(result)} items")
+        })
     return JSONResponse(content=result)
 
 @app.post("/api/assignments/{assignment_id}/delete")

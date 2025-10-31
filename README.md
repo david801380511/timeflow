@@ -28,6 +28,12 @@ A web application for managing assignments, scheduling study time, and preventin
 
 ## Setup
 
+### Prerequisites
+- Python 3.10 or higher
+- pip (Python package installer)
+
+### Installation Steps
+
 1. **Clone the repository**
    ```bash
    git clone https://github.com/yourusername/timeflow.git
@@ -39,7 +45,7 @@ A web application for managing assignments, scheduling study time, and preventin
    # Windows
    python -m venv venv
    .\venv\Scripts\activate
-   
+
    # macOS/Linux
    python3 -m venv venv
    source venv/bin/activate
@@ -47,12 +53,14 @@ A web application for managing assignments, scheduling study time, and preventin
 
 3. **Install dependencies**
    ```bash
-   pip install -r requirements.txt
+   pip install -r config/requirements.txt
    ```
 
 4. **Initialize the database**
+
+   The database will be automatically created when you first run the application. If you need to manually initialize it:
    ```bash
-   python -c "from models import init_db; init_db()"
+   python -c "from backend.database import init_db; init_db()"
    ```
 
 5. **Run the application**
@@ -60,7 +68,24 @@ A web application for managing assignments, scheduling study time, and preventin
    uvicorn app:app --reload
    ```
 
-6. **Open your browser** and navigate to [http://localhost:8000](http://localhost:8000)
+   The server will start on [http://localhost:8000](http://localhost:8000)
+
+6. **Access the application**
+
+   Open your browser and navigate to:
+   - Main app: [http://localhost:8000](http://localhost:8000)
+   - API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### Troubleshooting
+
+**Issue: "python-multipart" error**
+If you see an error about python-multipart being required:
+```bash
+pip install python-multipart
+```
+
+**Issue: Database errors**
+If you encounter database errors, try deleting `timeflow.db` and restarting the application to create a fresh database.
 
 ## Usage
 
