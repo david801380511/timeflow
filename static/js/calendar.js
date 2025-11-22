@@ -129,13 +129,13 @@
       const isToday = isSameDay(date, today);
 
       const dayCell = document.createElement('div');
-      dayCell.className = `month-day p-2 border border-gray-200 dark:border-gray-700 ${
+      dayCell.className = `month-day p-2 border-r border-b border-gray-200 dark:border-gray-700 relative ${
         !isCurrentMonth ? 'other-month' : ''
-      } ${isToday ? 'today' : ''} dark:text-white`;
+      } ${isToday ? 'today' : ''} dark:text-white cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50`;
 
       // Day number
       const dayNum = document.createElement('div');
-      dayNum.className = 'font-semibold mb-1';
+      dayNum.className = `font-semibold mb-1 text-sm ${isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}`;
       dayNum.textContent = date.getDate();
       dayCell.appendChild(dayNum);
 
@@ -200,12 +200,12 @@
     for (let r = 0; r < totalRows; r++) {
       const mins = rowToMinutes(r);
       const timeCell = document.createElement('div');
-      timeCell.className = "p-2 border-b border-r border-gray-200 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-400";
+      timeCell.className = "p-2 border-b border-r border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-500 dark:text-gray-400 text-right bg-gray-50 dark:bg-gray-800 sticky left-0";
       timeCell.textContent = minutesTo12Hour(mins);
       grid.appendChild(timeCell);
 
       const cell = document.createElement('div');
-      cell.className = "slot border-b border-r border-gray-200 dark:border-gray-700";
+      cell.className = "slot border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer";
       cell.dataset.row = String(r);
       cell.addEventListener('mousedown', startSelect);
       cell.addEventListener('mouseenter', growSelect);
@@ -263,11 +263,12 @@
 
       const startMins = s.getHours()*60 + s.getMinutes();
       const endMins = e.getHours()*60 + e.getMinutes();
-      const startRow = Math.max(0, minutesToRow(startMins));
-      const endRow = Math.min(totalRows, minutesToRow(endMins));
+      const startRow = Math.max(0, Math.floor((startMins - START_HOUR*60) / SLOT_MIN));
+      const endRow = Math.min(totalRows, Math.ceil((endMins - START_HOUR*60) / SLOT_MIN));
 
-      const isBreak = b.title && (b.title.toLowerCase().includes('break') || b.title.toLowerCase().includes('rest'));
+      const isBreak = b.block_type === 'break';
       const cssClass = isBreak ? 'scheduled-break' : (b.block_type === 'busy' ? 'scheduled-busy' : 'scheduled-study');
+      console.log('Block:', b.title, 'Type:', b.block_type, 'isBreak:', isBreak, 'cssClass:', cssClass);
 
       for (let r=startRow; r<endRow; r++){
         const cell = slots[r];
@@ -275,13 +276,20 @@
         cell.classList.add(cssClass);
         if (r === startRow){
           const pill = document.createElement('span');
-          pill.className = 'block-pill ' + (b.block_type === 'busy' ? 'busy' : isBreak ? 'break' : 'study');
+          const pillClass = 'block-pill ' + (b.block_type === 'busy' ? 'busy' : isBreak ? 'break' : 'study');
+          pill.className = pillClass;
+          console.log('Pill class:', pillClass, 'for block:', b.title);
           const t1 = minutesTo12Hour(startMins);
           const t2 = minutesTo12Hour(endMins);
-          pill.textContent = `${b.title} (${t1}–${t2})`;
+          
+          const textSpan = document.createElement('span');
+          textSpan.className = 'truncate';
+          textSpan.textContent = `${b.title} (${t1}–${t2})`;
+          pill.appendChild(textSpan);
+          
           const del = document.createElement('button');
-          del.className = 'ml-2 text-xs hover:text-red-600';
-          del.textContent = '✕';
+          del.className = 'ml-2 text-xs p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors';
+          del.innerHTML = '<i class="fas fa-times"></i>';
           del.title = 'Delete';
           del.addEventListener('click', async (ev)=>{
             ev.stopPropagation();
@@ -635,33 +643,31 @@
         consecutiveSessionsToday++;
         currentTime = new Date(endTime);
 
-        // Add break after session if there's more work remaining
-        if(remainingMinutes > 0){
-          // Use long break after every 4 sessions, short break otherwise
-          const isLongBreak = (sessionCount % 4 === 0);
-          const breakDuration = isLongBreak ? longBreak : shortBreak;
-          const breakEnd = new Date(currentTime);
-          breakEnd.setMinutes(breakEnd.getMinutes() + breakDuration);
+        // Always add a break after a session
+        // Use long break after every 4 sessions, short break otherwise
+        const isLongBreak = (sessionCount % 4 === 0);
+        const breakDuration = isLongBreak ? longBreak : shortBreak;
+        const breakEnd = new Date(currentTime);
+        breakEnd.setMinutes(breakEnd.getMinutes() + breakDuration);
 
-          // Only add break if it fits within working hours
-          if (breakEnd.getHours() < END_HOUR) {
-            // Get random break activity
-            const breakActivityName = getRandomBreakActivity(isLongBreak);
+        // Only add break if it fits within working hours
+        if (breakEnd.getHours() < END_HOUR) {
+          // Get random break activity
+          const breakActivityName = getRandomBreakActivity(isLongBreak);
 
-            await createBlock({
-              title: breakActivityName,
-              start: localDateTimeStr(currentTime),
-              end: localDateTimeStr(breakEnd),
-              block_type: 'busy'
-            });
-            currentTime = new Date(breakEnd);
-          } else {
-            // Break would go past working hours, move to next day
-            currentDay.setDate(currentDay.getDate() + 1);
-            currentDay.setHours(START_HOUR, 0, 0, 0);
-            currentTime = new Date(currentDay);
-            consecutiveSessionsToday = 0;
-          }
+          await createBlock({
+            title: `🌿 ${breakActivityName}`,
+            start: localDateTimeStr(currentTime),
+            end: localDateTimeStr(breakEnd),
+            block_type: 'break'
+          });
+          currentTime = new Date(breakEnd);
+        } else {
+          // Break would go past working hours, move to next day
+          currentDay.setDate(currentDay.getDate() + 1);
+          currentDay.setHours(START_HOUR, 0, 0, 0);
+          currentTime = new Date(currentDay);
+          consecutiveSessionsToday = 0;
         }
       } else {
         // Slot not available, try next 30-minute slot

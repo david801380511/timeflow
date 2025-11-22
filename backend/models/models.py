@@ -1,22 +1,8 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, ForeignKey, Boolean, Float
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, Boolean, Float
+from sqlalchemy.orm import relationship
 from datetime import datetime
 from typing import List
-
-# Create SQLite database in the current directory
-SQLALCHEMY_DATABASE_URL = "sqlite:///./timeflow.db"
-
-# Create the SQLAlchemy engine
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-
-# Create a SessionLocal class for database sessions
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Create a base class for models
-Base = declarative_base()
+from backend.database import Base, engine, SessionLocal
 
 class UserSettings(Base):
     __tablename__ = "user_settings"
@@ -74,6 +60,9 @@ class Assignment(Base):
     priority = Column(Integer, default=2)  # 1=high, 2=medium, 3=low
     completed = Column(Boolean, default=False)
 
+    # User link (nullable for backward compatibility)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+
     # Sprint/Task fields
     sprint = Column(String(100), nullable=True)  # Sprint name
     assignee = Column(String(100), nullable=True)  # Person assigned
@@ -87,8 +76,6 @@ class Assignment(Base):
 
 # Create all tables
 def create_tables():
-    Base.metadata.create_all(bind=engine)
-    
     # Create default user settings if they don't exist
     db = SessionLocal()
     try:
@@ -96,7 +83,7 @@ def create_tables():
         if not settings:
             default_settings = UserSettings()
             db.add(default_settings)
-            
+
             # Add default break activities
             default_activities = [
                 {"name": "Stretch", "type": "short", "duration": 5},
@@ -108,7 +95,7 @@ def create_tables():
                 {"name": "Watch a show", "type": "long", "duration": 30},
                 {"name": "Read for fun", "type": "long", "duration": 30}
             ]
-            
+
             for activity in default_activities:
                 db.add(BreakActivity(
                     name=activity["name"],
@@ -116,13 +103,10 @@ def create_tables():
                     duration=activity["duration"],
                     settings=default_settings
                 ))
-            
+
             db.commit()
     except Exception as e:
         print(f"Error creating default settings: {e}")
         db.rollback()
     finally:
         db.close()
-
-# Call this function to create tables when this module is imported
-create_tables()

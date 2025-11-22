@@ -6,6 +6,7 @@ from datetime import datetime
 from backend.database import get_db
 from backend.models.models import Assignment
 from backend.models.calendar_models import CalendarBlock
+from backend.routes.auth_routes import get_current_user
 from pathlib import Path
 
 router = APIRouter()
@@ -15,8 +16,9 @@ TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 @router.get("/calendar", response_class=HTMLResponse)
-def calendar_page(request: Request):
-    return templates.TemplateResponse("calendar.html", {"request": request})
+def calendar_page(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user(request, db)
+    return templates.TemplateResponse("calendar.html", {"request": request, "user": user})
 
 @router.get("/api/calendar/blocks")
 def list_blocks(start: str, end: str, db: Session = Depends(get_db)):
@@ -74,8 +76,8 @@ def create_block(payload: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="end must be after start")
 
     block_type = payload["block_type"]
-    if block_type not in ("busy", "study"):
-        raise HTTPException(status_code=400, detail="block_type must be 'busy' or 'study'")
+    if block_type not in ("busy", "study", "break"):
+        raise HTTPException(status_code=400, detail="block_type must be 'busy', 'study', or 'break'")
 
     assignment_id = payload.get("assignment_id")
     if assignment_id is not None:
@@ -112,9 +114,17 @@ def delete_block(block_id: int, db: Session = Depends(get_db)):
     return {"status": "ok"}
 
 @router.get("/api/assignments")
-def list_assignments(db: Session = Depends(get_db)):
+def list_assignments(request: Request, db: Session = Depends(get_db)):
     """List all assignments with full details"""
-    rows = db.query(Assignment).filter(Assignment.completed == False).all()
+    user = get_current_user(request, db)
+
+    # Filter by user if logged in
+    query = db.query(Assignment).filter(Assignment.completed == False)
+    if user:
+        # Only show assignments that belong to the current user
+        query = query.filter(Assignment.user_id == user.id)
+
+    rows = query.all()
     result = []
     for a in rows:
         result.append({

@@ -66,6 +66,16 @@ def create_break_activity(db: Session, activity: schemas.BreakActivityCreate):
     db.refresh(db_activity)
     return db_activity
 
+def update_break_activity(db: Session, activity_id: int, activity: schemas.BreakActivityCreate):
+    db_activity = db.query(models.BreakActivity).filter(models.BreakActivity.id == activity_id).first()
+    if db_activity:
+        for key, value in activity.dict().items():
+            setattr(db_activity, key, value)
+        db.commit()
+        db.refresh(db_activity)
+        return db_activity
+    return None
+
 def delete_break_activity(db: Session, activity_id: int):
     activity = db.query(models.BreakActivity).filter(models.BreakActivity.id == activity_id).first()
     if activity:

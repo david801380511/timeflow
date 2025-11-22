@@ -32,6 +32,13 @@ def list_break_activities(activity_type: str = None, db: Session = Depends(get_d
 def create_break_activity(activity: schemas.BreakActivityCreate, db: Session = Depends(get_db)):
     return crud.create_break_activity(db, activity)
 
+@router.put("/break-activities/{activity_id}", response_model=schemas.BreakActivity)
+def update_break_activity(activity_id: int, activity: schemas.BreakActivityCreate, db: Session = Depends(get_db)):
+    updated_activity = crud.update_break_activity(db, activity_id, activity)
+    if not updated_activity:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    return updated_activity
+
 @router.delete("/break-activities/{activity_id}")
 def delete_break_activity(activity_id: int, db: Session = Depends(get_db)):
     if not crud.delete_break_activity(db, activity_id):

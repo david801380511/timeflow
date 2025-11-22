@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from backend.models.models import Base, engine  # reuse existing Base/engine
+from backend.database import Base
 
 class CalendarBlock(Base):
     __tablename__ = "calendar_blocks"
@@ -13,6 +13,3 @@ class CalendarBlock(Base):
     assignment_id = Column(Integer, ForeignKey('assignments.id'), nullable=True)
 
     assignment = relationship("Assignment", backref="calendar_blocks", foreign_keys=[assignment_id])
-
-# Create table if missing
-Base.metadata.create_all(bind=engine)

@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TimeFlow - {% block title %}{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
     <script>
         // Dark mode enabled by default
         document.documentElement.classList.add('dark');
@@ -37,10 +41,45 @@
                         <a href="/calendar" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition duration-150 ease-in-out">
                              Calendar
                         </a>
+                        {% if user %}
+                        <a href="/profile" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition duration-150 ease-in-out">
+                            Profile
+                        </a>
+                        <a href="/leaderboard" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition duration-150 ease-in-out">
+                            <i class="fas fa-trophy"></i> Leaderboard
+                        </a>
+                        {% endif %}
                         <a href="/settings" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition duration-150 ease-in-out">
                             Settings
                         </a>
                     </div>
+                </div>
+
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    {% if user %}
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <div class="text-sm font-medium">{{ user.username }}</div>
+                            <div class="text-xs text-indigo-200">
+                                <i class="fas fa-star text-yellow-300"></i> {{ user.total_points }} pts
+                                <i class="fas fa-fire text-orange-400 ml-2"></i> {{ user.current_streak }} day streak
+                            </div>
+                        </div>
+                        <a href="/logout" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition duration-150 ease-in-out">
+                            Logout
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="flex items-center space-x-2">
+                        <a href="/login" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition duration-150 ease-in-out">
+                            Login
+                        </a>
+                        <a href="/signup" class="px-3 py-2 rounded-md text-sm font-medium bg-indigo-500 hover:bg-indigo-400 transition duration-150 ease-in-out">
+                            Sign Up
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

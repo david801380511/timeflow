@@ -48,8 +48,8 @@ ENV/
 # Testing
 .coverage
 htmlcov/
-.pytest_cache/
 
-# Distribution / packaging
-.Python
-env/
+# AI and Tools
+.claude/
+node_modules/
+nul

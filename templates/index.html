@@ -66,7 +66,18 @@
                                 <div class="flex-1">
                                     <h3 class="text-lg font-medium dark:text-white">{{ assignment.name }}</h3>
                                     <p class="text-sm text-gray-600 dark:text-gray-400">Due: {{ assignment.due_date.strftime('%B %d, %Y at %I:%M %p') }}</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Estimated Time: {{ assignment.estimated_time }} minutes</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                                        Estimated Time:
+                                        {% if assignment.estimated_time >= 60 %}
+                                            {% if assignment.estimated_time % 60 == 0 %}
+                                                {{ (assignment.estimated_time // 60) }} hour{{ 's' if (assignment.estimated_time // 60) != 1 else '' }}
+                                            {% else %}
+                                                {{ (assignment.estimated_time // 60) }} hour{{ 's' if (assignment.estimated_time // 60) != 1 else '' }} {{ (assignment.estimated_time % 60) }} min
+                                            {% endif %}
+                                        {% else %}
+                                            {{ assignment.estimated_time }} minutes
+                                        {% endif %}
+                                    </p>
                                     {% if assignment.description %}
                                         <p class="mt-2 text-gray-700 dark:text-gray-300">{{ assignment.description }}</p>
                                     {% endif %}

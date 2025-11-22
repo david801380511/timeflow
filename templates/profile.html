@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Profile Header -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold dark:text-white mb-2">{{ user.username }}</h1>
+                    <p class="text-gray-600 dark:text-gray-400">{{ user.email }}</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                        <i class="fas fa-star text-yellow-500"></i> {{ user.total_points }}
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Total Points</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Current Streak -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Streak</p>
+                        <p class="text-3xl font-bold text-orange-500">
+                            <i class="fas fa-fire"></i> {{ user.current_streak }}
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">days</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Longest Streak -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Longest Streak</p>
+                        <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                            <i class="fas fa-trophy"></i> {{ user.longest_streak }}
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">days</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Achievements Count -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Achievements</p>
+                        <p class="text-3xl font-bold text-green-600 dark:text-green-400">
+                            <i class="fas fa-medal"></i> <span id="achievement-count">{{ user.achievements|length }}</span>
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">unlocked</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-bold dark:text-white mb-6">
+                <i class="fas fa-trophy text-yellow-500"></i> Achievements
+            </h2>
+
+            <!-- Earned Achievements -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold dark:text-white mb-4">Unlocked</h3>
+                <div id="earned-achievements" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Available Achievements -->
+            <div>
+                <h3 class="text-lg font-semibold dark:text-gray-300 mb-4">Available</h3>
+                <div id="available-achievements" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function loadAchievements() {
+        try {
+            // Load user profile with achievements
+            const profileResponse = await fetch('/api/profile');
+            const profile = await profileResponse.json();
+
+            // Load all available achievements
+            const allAchievementsResponse = await fetch('/api/achievements');
+            const allAchievements = await allAchievementsResponse.json();
+
+            // Get earned achievement IDs
+            const earnedIds = new Set(profile.achievements.map(a => a.id));
+
+            // Separate earned and available achievements
+            const earnedContainer = document.getElementById('earned-achievements');
+            const availableContainer = document.getElementById('available-achievements');
+
+            earnedContainer.innerHTML = '';
+            availableContainer.innerHTML = '';
+
+            // Display earned achievements
+            if (profile.achievements.length === 0) {
+                earnedContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 col-span-full">No achievements unlocked yet. Keep working!</p>';
+            } else {
+                profile.achievements.forEach(achievement => {
+                    const card = createAchievementCard(achievement, true);
+                    earnedContainer.appendChild(card);
+                });
+            }
+
+            // Display available achievements
+            const available = allAchievements.filter(a => !earnedIds.has(a.id));
+            if (available.length === 0) {
+                availableContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 col-span-full">All achievements unlocked! 🎉</p>';
+            } else {
+                available.forEach(achievement => {
+                    const card = createAchievementCard(achievement, false);
+                    availableContainer.appendChild(card);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading achievements:', error);
+        }
+    }
+
+    function getIconHtml(iconName) {
+        const iconMap = {
+            'TARGET': '🎯',
+            'CHECK': '✅',
+            'FIRE': '🔥',
+            'BOOK': '📚',
+            'SWORD': '⚔️',
+            'STAR': '🌟',
+            'CLOCK': '⏰',
+            '100': '💯',
+            'GEM': '💎'
+        };
+        return iconMap[iconName] || '🏆';
+    }
+
+    function createAchievementCard(achievement, earned) {
+        const card = document.createElement('div');
+        card.className = `rounded-lg p-4 ${earned ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900 dark:to-yellow-800 border-2 border-yellow-300 dark:border-yellow-600' : 'bg-gray-100 dark:bg-gray-700 opacity-60'}`;
+
+        const earnedDate = earned && achievement.earned_at ? new Date(achievement.earned_at).toLocaleDateString() : '';
+
+        card.innerHTML = `
+            <div class="flex items-start space-x-3">
+                <div class="text-3xl">${getIconHtml(achievement.icon)}</div>
+                <div class="flex-1">
+                    <h4 class="font-bold ${earned ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}">${achievement.name}</h4>
+                    <p class="text-sm ${earned ? 'text-gray-700 dark:text-gray-300' : 'text-gray-500 dark:text-gray-500'} mt-1">${achievement.description}</p>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-xs font-medium ${earned ? 'text-yellow-700 dark:text-yellow-300' : 'text-gray-500 dark:text-gray-500'}">
+                            <i class="fas fa-star"></i> ${achievement.points} pts
+                        </span>
+                        ${earned ? `<span class="text-xs text-gray-600 dark:text-gray-400">${earnedDate}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        return card;
+    }
+
+    // Load achievements on page load
+    document.addEventListener('DOMContentLoaded', loadAchievements);
+</script>
+{% endblock %}

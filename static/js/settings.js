@@ -103,13 +103,13 @@ function renderBreakActivities() {
     
     let html = `
         <div class="mb-8">
-            <h3 class="text-lg font-medium mb-4">Short Break Activities</h3>
+            <h3 class="text-lg font-semibold mb-4 dark:text-white flex items-center gap-2"><i class="fas fa-coffee text-green-500"></i> Short Break Activities</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 ${shortBreakActivities.map(activity => createActivityCard(activity)).join('')}
             </div>
         </div>
         <div>
-            <h3 class="text-lg font-medium mb-4">Long Break Activities</h3>
+            <h3 class="text-lg font-semibold mb-4 dark:text-white flex items-center gap-2"><i class="fas fa-gamepad text-blue-500"></i> Long Break Activities</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 ${longBreakActivities.map(activity => createActivityCard(activity)).join('')}
             </div>
@@ -139,23 +139,23 @@ function renderBreakActivities() {
 // Create an activity card HTML
 function createActivityCard(activity) {
     return `
-        <div class="bg-white border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div class="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200 group">
             <div class="flex justify-between items-start">
                 <div>
-                    <h4 class="font-medium text-gray-900">${activity.name}</h4>
-                    ${activity.description ? `<p class="text-sm text-gray-500 mt-1">${activity.description}</p>` : ''}
-                    <div class="mt-2 flex items-center text-sm text-gray-500">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${activity.activity_type === 'short' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
+                    <h4 class="font-semibold text-gray-900 dark:text-white text-lg">${activity.name}</h4>
+                    ${activity.description ? `<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${activity.description}</p>` : ''}
+                    <div class="mt-3 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${activity.activity_type === 'short' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'}">
                             ${activity.activity_type === 'short' ? 'Short Break' : 'Long Break'}
                         </span>
-                        <span class="ml-2">${activity.duration || 'Flexible'} min</span>
+                        <span class="ml-2 flex items-center gap-1"><i class="far fa-clock"></i> ${activity.duration || 'Flexible'} min</span>
                     </div>
                 </div>
-                <div class="flex space-x-2">
-                    <button class="edit-activity text-blue-600 hover:text-blue-800" data-id="${activity.id}">
+                <div class="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="edit-activity p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" data-id="${activity.id}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="delete-activity text-red-600 hover:text-red-800" data-id="${activity.id}">
+                    <button class="delete-activity p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" data-id="${activity.id}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>

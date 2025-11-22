@@ -4,18 +4,31 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from datetime import datetime
 from sqlalchemy.orm import Session
-from backend.models import models
+
+# Import models in correct order
+from backend.database import get_db, Base, engine
+from backend.models import user_models  # Import user models first
+from backend.models import models  # Then other models
 from backend.schemas import schemas
-from backend.database import get_db
 from backend.routes.break_routes import router as break_router
 from backend.routes.calendar_routes import router as calendar_router
 from backend.routes.limit_routes import router as limit_router
+from backend.routes.auth_routes import router as auth_router, get_current_user, check_and_award_achievements
 
+# Create all tables now that all models are imported
+Base.metadata.create_all(bind=engine)
+
+# Initialize default achievements
+user_models.create_default_achievements()
+
+# Initialize default settings
+models.create_tables()
 
 app = FastAPI()
 app.include_router(break_router, prefix="/api", tags=["break"])
 app.include_router(calendar_router)
 app.include_router(limit_router, prefix="/api", tags=["limits"])
+app.include_router(auth_router, tags=["auth"])
 
 
 templates = Jinja2Templates(directory="templates")
@@ -23,14 +36,26 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, db: Session = Depends(get_db)):
-    assignments = db.query(models.Assignment).all()
+    user = get_current_user(request, db)
+
+    # If user is logged in, show only their assignments
+    if user:
+        assignments = db.query(models.Assignment).filter(
+            models.Assignment.user_id == user.id
+        ).all()
+    else:
+        # Show all assignments (for backward compatibility)
+        assignments = db.query(models.Assignment).all()
+
     return templates.TemplateResponse("index.html", {
-        "request": request, 
-        "assignments": assignments
+        "request": request,
+        "assignments": assignments,
+        "user": user
     })
 
 @app.post("/assignments")
 async def create_assignment(
+    request: Request,
     name: str = Form(...),
     due_date: str = Form(...),
     estimated_time: int = Form(...),
@@ -39,6 +64,8 @@ async def create_assignment(
     db: Session = Depends(get_db)
 ):
     try:
+        user = get_current_user(request, db)
+
         # Check for duplicate assignment name
         existing = db.query(models.Assignment).filter(
             models.Assignment.name == name,
@@ -61,11 +88,17 @@ async def create_assignment(
             due_date=due_date_obj,
             estimated_time=estimated_time,
             description=description,
-            priority=priority
+            priority=priority,
+            user_id=user.id if user else None
         )
 
         db.add(new_assignment)
         db.commit()
+
+        # Award achievements if user is logged in
+        if user:
+            check_and_award_achievements(user, db)
+
         return RedirectResponse(url="/", status_code=303)
     except Exception as e:
         db.rollback()
@@ -76,13 +109,15 @@ async def create_assignment(
 
 # Add a route to serve the timer page
 @app.get("/timer", response_class=HTMLResponse)
-async def timer_page(request: Request):
-    return templates.TemplateResponse("timer.html", {"request": request})
+async def timer_page(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user(request, db)
+    return templates.TemplateResponse("timer.html", {"request": request, "user": user})
 
 # Add a route to serve the settings page
 @app.get("/settings", response_class=HTMLResponse)
-async def settings_page(request: Request):
-    return templates.TemplateResponse("settings.html", {"request": request})
+async def settings_page(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user(request, db)
+    return templates.TemplateResponse("settings.html", {"request": request, "user": user})
 
 # Assignments API endpoint is now in calendar_routes.py to avoid duplication
 
@@ -115,6 +150,7 @@ async def delete_assignment(assignment_id: int, db: Session = Depends(get_db)):
 
 @app.post("/api/assignments/{assignment_id}/progress")
 async def update_assignment_progress(
+    request: Request,
     assignment_id: int,
     progress_minutes: int = Form(...),
     db: Session = Depends(get_db)
@@ -124,6 +160,7 @@ async def update_assignment_progress(
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
 
+    was_completed = assignment.completed
     assignment.time_spent = progress_minutes
 
     # Mark as completed if time spent >= estimated time
@@ -134,6 +171,13 @@ async def update_assignment_progress(
         assignment.status = 'in_progress'
 
     db.commit()
+
+    # Award achievements if assignment was just completed
+    if assignment.completed and not was_completed:
+        user = get_current_user(request, db)
+        if user:
+            newly_awarded = check_and_award_achievements(user, db)
+
     return {
         "status": "success",
         "time_spent": assignment.time_spent,
