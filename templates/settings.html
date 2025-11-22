@@ -4,293 +4,187 @@
 
 {% block content %}
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-center mb-8 dark:text-white">Settings</h1>
-
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
-            <!-- Timer Settings -->
-            <div class="mb-12">
-                <h2 class="text-2xl font-semibold mb-6 pb-2 border-b dark:border-gray-700 dark:text-white">Timer Settings</h2>
-                <form id="timer-settings" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="work-interval" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Work Interval (minutes)</label>
-                            <input type="number" id="work-interval" name="work_interval" min="1" max="120" 
-                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                        </div>
-                        <div>
-                            <label for="short-break" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Short Break (minutes)</label>
-                            <input type="number" id="short-break" name="short_break" min="1" max="30" 
-                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                        </div>
-                        <div>
-                            <label for="long-break" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Long Break (minutes)</label>
-                            <input type="number" id="long-break" name="long_break" min="1" max="60" 
-                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                        </div>
-                        <div>
-                            <label for="short-breaks-before-long" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Short Breaks Before Long Break</label>
-                            <input type="number" id="short-breaks-before-long" name="short_breaks_before_long" min="1" max="10"
-                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                        </div>
-                        <div>
-                            <label for="preferred-start-hour" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preferred Start Time</label>
-                            <select id="preferred-start-hour" name="preferred_start_hour"
-                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                                <option value="0">12:00 AM</option>
-                                <option value="1">1:00 AM</option>
-                                <option value="2">2:00 AM</option>
-                                <option value="3">3:00 AM</option>
-                                <option value="4">4:00 AM</option>
-                                <option value="5">5:00 AM</option>
-                                <option value="6">6:00 AM</option>
-                                <option value="7">7:00 AM</option>
-                                <option value="8">8:00 AM</option>
-                                <option value="9" selected>9:00 AM</option>
-                                <option value="10">10:00 AM</option>
-                                <option value="11">11:00 AM</option>
-                                <option value="12">12:00 PM</option>
-                                <option value="13">1:00 PM</option>
-                                <option value="14">2:00 PM</option>
-                                <option value="15">3:00 PM</option>
-                                <option value="16">4:00 PM</option>
-                                <option value="17">5:00 PM</option>
-                                <option value="18">6:00 PM</option>
-                                <option value="19">7:00 PM</option>
-                                <option value="20">8:00 PM</option>
-                                <option value="21">9:00 PM</option>
-                                <option value="22">10:00 PM</option>
-                                <option value="23">11:00 PM</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="preferred-end-hour" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preferred End Time</label>
-                            <select id="preferred-end-hour" name="preferred_end_hour"
-                                   class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                <option value="0">12:00 AM</option>
-                                <option value="1">1:00 AM</option>
-                                <option value="2">2:00 AM</option>
-                                <option value="3">3:00 AM</option>
-                                <option value="4">4:00 AM</option>
-                                <option value="5">5:00 AM</option>
-                                <option value="6">6:00 AM</option>
-                                <option value="7">7:00 AM</option>
-                                <option value="8">8:00 AM</option>
-                                <option value="9">9:00 AM</option>
-                                <option value="10">10:00 AM</option>
-                                <option value="11">11:00 AM</option>
-                                <option value="12">12:00 PM</option>
-                                <option value="13">1:00 PM</option>
-                                <option value="14">2:00 PM</option>
-                                <option value="15">3:00 PM</option>
-                                <option value="16">4:00 PM</option>
-                                <option value="17" selected>5:00 PM</option>
-                                <option value="18">6:00 PM</option>
-                                <option value="19">7:00 PM</option>
-                                <option value="20">8:00 PM</option>
-                                <option value="21">9:00 PM</option>
-                                <option value="22">10:00 PM</option>
-                                <option value="23">11:00 PM</option>
-                            </select>
-                        </div>
-                        <!-- Time Limit Settings (Added) -->
-                        <div class="mb-12">
-                    <h2 class="text-2xl font-semibold mb-6 pb-2 border-b dark:border-gray-700 dark:text-white">Time Limit</h2>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-    <div class="md:col-span-1">
-      <label for="daily-limit-minutes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        Daily Study Limit (minutes)
-      </label>
-      <input id="daily-limit-minutes" type="number" min="1" max="1440" step="5"
-             class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white" placeholder="e.g., 180">
-    </div>
-    <div>
-      <button id="save-daily-limit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-        Save
-      </button>
-    </div>
-    <div class="text-sm text-gray-600" id="limit-status"></div>
-  </div>
-</div>
-
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="auto-start-breaks" name="auto_start_breaks" 
-                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="auto-start-breaks" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                                Auto-start breaks
-                            </label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="auto-start-pomodoros" name="auto_start_pomodoros" 
-                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="auto-start-pomodoros" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                                Auto-start next pomodoro
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="pt-4 flex justify-end">
-                        <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-sm font-medium transition-colors">
-                            Save Timer Settings
-                        </button>
-                    </div>
-                </form>
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+                    <i class="fas fa-cog text-indigo-600 dark:text-indigo-400 text-xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
             </div>
 
-            <!-- Break Activities -->
-            <div class="mb-12">
-                <div class="flex justify-between items-center mb-6 pb-2 border-b dark:border-gray-700">
-                    <h2 class="text-2xl font-semibold dark:text-white">Break Activities</h2>
-                    <button id="add-activity-btn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-sm font-medium transition-colors flex items-center gap-2">
-                        <i class="fas fa-plus"></i> Add Activity
-                    </button>
+            <div class="space-y-8">
+                <!-- Timer Settings -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i class="fas fa-stopwatch text-indigo-500"></i>
+                            Timer Configuration
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <form id="timer-settings" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="work-interval" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Work Interval (minutes)</label>
+                                    <input type="number" id="work-interval" name="work_interval" min="1" max="120" 
+                                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                </div>
+                                <div>
+                                    <label for="short-break" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Short Break (minutes)</label>
+                                    <input type="number" id="short-break" name="short_break" min="1" max="30" 
+                                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                </div>
+                                <div>
+                                    <label for="long-break" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Long Break (minutes)</label>
+                                    <input type="number" id="long-break" name="long_break" min="1" max="60" 
+                                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                </div>
+                                <div>
+                                    <label for="short-breaks-before-long" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Short Breaks Before Long Break</label>
+                                    <input type="number" id="short-breaks-before-long" name="short_breaks_before_long" min="1" max="10"
+                                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                </div>
+                                <div>
+                                    <label for="preferred-start-hour" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preferred Start Time</label>
+                                    <select id="preferred-start-hour" name="preferred_start_hour"
+                                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                        <option value="0">12:00 AM</option>
+                                        <option value="1">1:00 AM</option>
+                                        <option value="2">2:00 AM</option>
+                                        <option value="3">3:00 AM</option>
+                                        <option value="4">4:00 AM</option>
+                                        <option value="5">5:00 AM</option>
+                                        <option value="6">6:00 AM</option>
+                                        <option value="7">7:00 AM</option>
+                                        <option value="8">8:00 AM</option>
+                                        <option value="9" selected>9:00 AM</option>
+                                        <option value="10">10:00 AM</option>
+                                        <option value="11">11:00 AM</option>
+                                        <option value="12">12:00 PM</option>
+                                        <option value="13">1:00 PM</option>
+                                        <option value="14">2:00 PM</option>
+                                        <option value="15">3:00 PM</option>
+                                        <option value="16">4:00 PM</option>
+                                        <option value="17">5:00 PM</option>
+                                        <option value="18">6:00 PM</option>
+                                        <option value="19">7:00 PM</option>
+                                        <option value="20">8:00 PM</option>
+                                        <option value="21">9:00 PM</option>
+                                        <option value="22">10:00 PM</option>
+                                        <option value="23">11:00 PM</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="preferred-end-hour" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Preferred End Time</label>
+                                    <select id="preferred-end-hour" name="preferred_end_hour"
+                                           class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                        <option value="0">12:00 AM</option>
+                                        <option value="1">1:00 AM</option>
+                                        <option value="2">2:00 AM</option>
+                                        <option value="3">3:00 AM</option>
+                                        <option value="4">4:00 AM</option>
+                                        <option value="5">5:00 AM</option>
+                                        <option value="6">6:00 AM</option>
+                                        <option value="7">7:00 AM</option>
+                                        <option value="8">8:00 AM</option>
+                                        <option value="9">9:00 AM</option>
+                                        <option value="10">10:00 AM</option>
+                                        <option value="11">11:00 AM</option>
+                                        <option value="12">12:00 PM</option>
+                                        <option value="13">1:00 PM</option>
+                                        <option value="14">2:00 PM</option>
+                                        <option value="15">3:00 PM</option>
+                                        <option value="16">4:00 PM</option>
+                                        <option value="17" selected>5:00 PM</option>
+                                        <option value="18">6:00 PM</option>
+                                        <option value="19">7:00 PM</option>
+                                        <option value="20">8:00 PM</option>
+                                        <option value="21">9:00 PM</option>
+                                        <option value="22">10:00 PM</option>
+                                        <option value="23">11:00 PM</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-500/30 transition-all transform hover:scale-[1.02]">
+                                    Save Timer Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
-                <div id="activities-container" class="space-y-4">
-                    <!-- Activities will be loaded here -->
-                    <div class="text-center py-8 text-gray-500">
-                        <p>Loading activities...</p>
+                <!-- Break Activities -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i class="fas fa-coffee text-indigo-500"></i>
+                            Break Activities
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <form id="add-activity-form" class="mb-6">
+                            <div class="flex gap-3">
+                                <input type="text" id="new-activity" placeholder="Add a new break activity (e.g., 'Stretch', 'Drink water')" 
+                                       class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                <button type="submit" class="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow-lg shadow-green-500/30 transition-all transform hover:scale-[1.02]">
+                                    Add
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4">
+                            <ul id="activity-list" class="space-y-2">
+                                <!-- Activities will be populated here -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Limits -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i class="fas fa-clock text-indigo-500"></i>
+                            Daily Time Limits
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <form id="time-limit-form" class="space-y-6">
+                            <div>
+                                <label for="limit-category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                                <select id="limit-category" class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                    <option value="study">Study</option>
+                                    <option value="work">Work</option>
+                                    <option value="entertainment">Entertainment</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="limit-minutes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Daily Limit (minutes)</label>
+                                <input type="number" id="limit-minutes" min="1" 
+                                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-500/30 transition-all transform hover:scale-[1.02]">
+                                    Set Limit
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="mt-8">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Active Limits</h3>
+                            <div id="active-limits" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Limits will be populated here -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Notification Settings -->
-            <div>
-                <h2 class="text-2xl font-semibold mb-6 pb-2 border-b dark:border-gray-700 dark:text-white">Notification Settings</h2>
-                <form id="notification-settings" class="space-y-6">
-                    <div class="space-y-4">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="enable-notifications" name="enable_notifications" 
-                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="enable-notifications" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                                Enable desktop notifications
-                            </label>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="enable-sound" name="enable_sound" 
-                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="enable-sound" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                                Enable sound notifications
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="pt-4">
-                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                            Save Notification Settings
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add/Edit Activity Modal -->
-    <div id="activity-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-            <h2 id="modal-title" class="text-2xl font-bold mb-6">Add Break Activity</h2>
-            
-            <form id="activity-form" class="space-y-4">
-                <input type="hidden" id="activity-id">
-                
-                <div>
-                    <label for="activity-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Activity Name</label>
-                    <input type="text" id="activity-name" name="name" required
-                           class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                
-                <div>
-                    <label for="activity-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description (optional)</label>
-                    <textarea id="activity-description" name="description" rows="2"
-                              class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="activity-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Activity Type</label>
-                        <select id="activity-type" name="activity_type" required
-                                class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="short">Short Break</option>
-                            <option value="long">Long Break</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label for="activity-duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Duration (minutes)</label>
-                        <input type="number" id="activity-duration" name="duration" min="1" max="120"
-                               class="w-full p-2 border dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancel-activity" 
-                            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Save Activity
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Add/Edit Activity Modal -->
-    <div id="activity-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-            <h2 class="text-2xl font-bold mb-4" id="modal-title">Add Activity</h2>
-            <form id="activity-form" class="space-y-4">
-                <input type="hidden" id="activity-id">
-                
-                <div>
-                    <label for="activity-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Activity Name</label>
-                    <input type="text" id="activity-name" name="name" required 
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                </div>
-                
-                <div>
-                    <label for="activity-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description (optional)</label>
-                    <textarea id="activity-description" name="description" rows="2"
-                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-                </div>
-                
-                <div>
-                    <label for="activity-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Activity Type</label>
-                    <select id="activity-type" name="activity_type" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="short">Short Break</option>
-                        <option value="long">Long Break</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label for="activity-duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Duration (minutes, optional)</label>
-                    <input type="number" id="activity-duration" name="duration" min="1" max="60"
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <p class="mt-1 text-sm text-gray-500">Leave empty to use default break duration</p>
-                </div>
-                
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" id="cancel-activity" 
-                            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Save Activity
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 {% endblock %}
 
 {% block extra_js %}
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="/static/js/settings.js"></script>
-    <script src="/static/js/time_limit.js"></script>
-
+<script src="{{ url_for('static', path='/js/settings.js') }}"></script>
+<script src="{{ url_for('static', path='/js/time_limit.js') }}"></script>
 {% endblock %}

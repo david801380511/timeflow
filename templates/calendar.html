@@ -91,12 +91,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-7xl">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <!-- Month View -->
-  <div id="monthView" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300">
+  <div id="monthView" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300">
     <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <h1 id="monthLabel" class="text-3xl font-bold text-gray-900 dark:text-white"></h1>
+        <h1 id="monthLabel" class="text-2xl font-bold text-gray-900 dark:text-white"></h1>
         <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
           <button id="prevMonth" class="p-2 rounded-md hover:bg-white dark:hover:bg-gray-600 shadow-sm transition-all text-gray-600 dark:text-gray-300">
             <i class="fas fa-chevron-left"></i>
@@ -109,10 +109,10 @@
       </div>
       
       <div class="flex gap-3">
-        <button id="autoScheduleBtn" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow transition-colors font-medium">
+        <button id="autoScheduleBtn" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition-colors font-medium text-sm">
           <i class="fas fa-robot"></i> Auto-Schedule
         </button>
-        <button id="clearCalendarBtn" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 rounded-lg shadow-sm transition-colors font-medium">
+        <button id="clearCalendarBtn" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 rounded-lg shadow-sm transition-colors font-medium text-sm">
           <i class="fas fa-trash-alt"></i> Clear
         </button>
       </div>
@@ -132,10 +132,10 @@
   </div>
 
   <!-- Day View (hidden by default) -->
-  <div id="dayView" class="hidden bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+  <div id="dayView" class="hidden bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
     <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <button id="backToMonth" class="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+        <button id="backToMonth" class="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-sm font-medium">
           <i class="fas fa-arrow-left"></i> Back
         </button>
         <h1 id="dayLabel" class="text-2xl font-bold text-gray-900 dark:text-white"></h1>
@@ -161,10 +161,12 @@
 </div>
 
 <!-- Create Block Modal -->
-<div id="blockModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-  <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden transform transition-all">
+<div id="blockModal" class="hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+  <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden transform transition-all border border-gray-200 dark:border-gray-700">
     <div class="bg-indigo-600 px-6 py-4">
-      <h3 class="text-lg font-semibold text-white">Create Block</h3>
+      <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+        <i class="fas fa-clock"></i> Create Block
+      </h3>
     </div>
     <div class="p-6 space-y-4">
       <div>
@@ -184,9 +186,9 @@
         <select id="blkAssignment" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white transition-colors"></select>
       </div>
     </div>
-    <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 flex justify-end gap-3">
-      <button id="blkCancel" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors">Cancel</button>
-      <button id="blkSave" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm font-medium transition-colors">Save Block</button>
+    <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700">
+      <button id="blkCancel" class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 font-medium transition-colors text-sm">Cancel</button>
+      <button id="blkSave" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm font-medium transition-colors text-sm">Save Block</button>
     </div>
   </div>
 </div>

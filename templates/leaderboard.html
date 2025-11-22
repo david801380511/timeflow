@@ -6,25 +6,26 @@
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold dark:text-white mb-2">
-                <i class="fas fa-trophy text-yellow-500"></i> Leaderboard
-            </h1>
-            <p class="text-gray-600 dark:text-gray-400">Top performers and their achievements</p>
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900/30 mb-4 shadow-lg shadow-yellow-500/20">
+                <i class="fas fa-trophy text-3xl text-yellow-500"></i>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Leaderboard</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400">Top performers and their achievements</p>
         </div>
 
         <!-- Leaderboard Table -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
             <div class="overflow-x-auto">
                 <table class="w-full">
-                    <thead class="bg-indigo-600 text-white">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-sm font-semibold">Rank</th>
-                            <th class="px-6 py-4 text-left text-sm font-semibold">User</th>
-                            <th class="px-6 py-4 text-center text-sm font-semibold">Points</th>
-                            <th class="px-6 py-4 text-center text-sm font-semibold">Streak</th>
-                            <th class="px-6 py-4 text-center text-sm font-semibold">Completed</th>
-                            <th class="px-6 py-4 text-center text-sm font-semibold">Achievements</th>
+                    <thead>
+                        <tr class="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rank</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Points</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Streak</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Completed</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Achievements</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboard-body" class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -34,116 +35,126 @@
             </div>
 
             <!-- Loading State -->
-            <div id="loading" class="text-center py-12">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                <p class="text-gray-600 dark:text-gray-400 mt-4">Loading leaderboard...</p>
+            <div id="loading" class="text-center py-16">
+                <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div>
+                <p class="text-gray-500 dark:text-gray-400 mt-4 font-medium">Loading leaderboard...</p>
             </div>
 
             <!-- Empty State -->
-            <div id="empty-state" class="text-center py-12 hidden">
-                <i class="fas fa-users text-6xl text-gray-400 mb-4"></i>
-                <p class="text-gray-600 dark:text-gray-400">No users yet. Be the first!</p>
+            <div id="empty-state" class="text-center py-16 hidden">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
+                    <i class="fas fa-users text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No users yet</h3>
+                <p class="text-gray-500 dark:text-gray-400">Be the first to join the leaderboard!</p>
             </div>
         </div>
 
         <!-- Your Rank Card (if not in top 20) -->
-        <div id="your-rank-card" class="mt-6 bg-indigo-50 dark:bg-indigo-900 rounded-lg p-6 hidden">
-            <h3 class="text-lg font-semibold text-indigo-900 dark:text-indigo-100 mb-3">Your Ranking</h3>
-            <div id="your-rank-content"></div>
+        <div id="your-rank-card" class="mt-6 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-6 border border-indigo-100 dark:border-indigo-800 hidden">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">#<span id="your-rank">--</span></div>
+                    <div>
+                        <div class="font-bold text-gray-900 dark:text-white">Your Rank</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Keep going to reach the top!</div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xl font-bold text-indigo-600 dark:text-indigo-400"><span id="your-points">0</span> pts</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-    async function loadLeaderboard() {
-        const loadingDiv = document.getElementById('loading');
-        const emptyStateDiv = document.getElementById('empty-state');
-        const leaderboardBody = document.getElementById('leaderboard-body');
+document.addEventListener('DOMContentLoaded', async () => {
+    const tbody = document.getElementById('leaderboard-body');
+    const loading = document.getElementById('loading');
+    const emptyState = document.getElementById('empty-state');
+    const yourRankCard = document.getElementById('your-rank-card');
 
-        try {
-            const response = await fetch('/api/leaderboard');
-            const leaderboard = await response.json();
+    try {
+        const response = await fetch('/api/leaderboard');
+        const data = await response.json();
+        
+        loading.classList.add('hidden');
 
-            loadingDiv.classList.add('hidden');
-
-            if (leaderboard.length === 0) {
-                emptyStateDiv.classList.remove('hidden');
-                return;
-            }
-
-            // Get current user
-            const currentUsername = "{{ user.username }}";
-
-            leaderboard.forEach((entry, index) => {
-                const row = createLeaderboardRow(entry, currentUsername);
-                leaderboardBody.appendChild(row);
-            });
-
-        } catch (error) {
-            console.error('Error loading leaderboard:', error);
-            loadingDiv.innerHTML = '<p class="text-red-600 dark:text-red-400">Error loading leaderboard</p>';
+        if (!data.leaderboard || data.leaderboard.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
         }
-    }
 
-    function createLeaderboardRow(entry, currentUsername) {
-        const row = document.createElement('tr');
-        const isCurrentUser = entry.username === currentUsername;
+        data.leaderboard.forEach((user, index) => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors';
+            
+            // Rank styling
+            let rankDisplay = `<span class="font-medium text-gray-900 dark:text-white">#${index + 1}</span>`;
+            if (index === 0) rankDisplay = '<i class="fas fa-crown text-yellow-500 text-xl"></i>';
+            if (index === 1) rankDisplay = '<i class="fas fa-medal text-gray-400 text-xl"></i>';
+            if (index === 2) rankDisplay = '<i class="fas fa-medal text-amber-600 text-xl"></i>';
 
-        // Highlight current user's row
-        row.className = isCurrentUser
-            ? 'bg-indigo-50 dark:bg-indigo-900 font-semibold'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors';
-
-        // Rank with medal for top 3
-        let rankDisplay = entry.rank;
-        if (entry.rank === 1) rankDisplay = '<span class="text-2xl">🥇</span>';
-        else if (entry.rank === 2) rankDisplay = '<span class="text-2xl">🥈</span>';
-        else if (entry.rank === 3) rankDisplay = '<span class="text-2xl">🥉</span>';
-
-        row.innerHTML = `
-            <td class="px-6 py-4 text-gray-900 dark:text-white">${rankDisplay}</td>
-            <td class="px-6 py-4">
-                <div class="flex items-center">
-                    <div class="h-10 w-10 flex-shrink-0 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
-                        ${entry.username.charAt(0).toUpperCase()}
+            tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center justify-center w-8 h-8">
+                        ${rankDisplay}
                     </div>
-                    <div class="ml-3">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold mr-3">
+                            ${user.username.charAt(0).toUpperCase()}
+                        </div>
                         <div class="text-sm font-medium text-gray-900 dark:text-white">
-                            ${entry.username}
-                            ${isCurrentUser ? '<span class="ml-2 text-xs bg-indigo-600 text-white px-2 py-1 rounded">You</span>' : ''}
+                            ${user.username}
+                            ${user.is_current_user ? '<span class="ml-2 px-2 py-0.5 text-xs bg-indigo-100 text-indigo-800 rounded-full">You</span>' : ''}
                         </div>
                     </div>
-                </div>
-            </td>
-            <td class="px-6 py-4 text-center">
-                <span class="inline-flex items-center text-sm font-medium text-yellow-700 dark:text-yellow-400">
-                    <i class="fas fa-star mr-1"></i> ${entry.total_points}
-                </span>
-            </td>
-            <td class="px-6 py-4 text-center">
-                <span class="inline-flex items-center text-sm font-medium text-orange-600 dark:text-orange-400">
-                    <i class="fas fa-fire mr-1"></i> ${entry.current_streak}
-                </span>
-                ${entry.longest_streak > entry.current_streak
-                    ? `<div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Best: ${entry.longest_streak}</div>`
-                    : ''}
-            </td>
-            <td class="px-6 py-4 text-center text-sm text-gray-900 dark:text-white">
-                ${entry.assignments_completed}
-            </td>
-            <td class="px-6 py-4 text-center">
-                <span class="inline-flex items-center text-sm font-medium text-green-700 dark:text-green-400">
-                    <i class="fas fa-medal mr-1"></i> ${entry.achievements_count}
-                </span>
-            </td>
-        `;
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        ${user.points}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <div class="text-sm text-gray-900 dark:text-white font-medium">
+                        <i class="fas fa-fire text-orange-500 mr-1"></i> ${user.streak_days} days
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                    ${user.completed_tasks}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <div class="flex justify-center -space-x-2 overflow-hidden">
+                        ${user.achievements.slice(0, 3).map(ach => `
+                            <div class="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-100 dark:bg-gray-700 flex items-center justify-center" title="${ach.name}">
+                                <i class="${ach.icon} text-xs text-indigo-600 dark:text-indigo-400"></i>
+                            </div>
+                        `).join('')}
+                        ${user.achievements.length > 3 ? `
+                            <div class="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-500">
+                                +${user.achievements.length - 3}
+                            </div>
+                        ` : ''}
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
 
-        return row;
+        // Show user rank card if they exist but aren't in the visible list
+        if (data.user_rank && data.user_rank.rank > data.leaderboard.length) {
+            document.getElementById('your-rank').textContent = data.user_rank.rank;
+            document.getElementById('your-points').textContent = data.user_rank.points;
+            yourRankCard.classList.remove('hidden');
+        }
+
+    } catch (error) {
+        console.error('Error loading leaderboard:', error);
+        loading.innerHTML = '<p class="text-red-500">Error loading leaderboard. Please try again.</p>';
     }
-
-    // Load leaderboard on page load
-    document.addEventListener('DOMContentLoaded', loadLeaderboard);
+});
 </script>
 {% endblock %}

@@ -2,150 +2,133 @@
 
 {% block title %}Pomodoro Timer{% endblock %}
 
-{% block extra_css %}
-    <style>
-        .timer-display {
-            font-family: 'Arial', sans-serif;
-            font-size: 4.5rem;
-            font-weight: bold;
-            text-align: center;
-            margin: 0.5rem 0;
-            color: #4B5563;
-            line-height: 1;
-        }
-        .progress-ring {
-            transform: rotate(-90deg);
-        }
-        .progress-ring__circle {
-            transition: stroke-dashoffset 0.1s;
-            transform: rotate(90deg);
-            transform-origin: 50% 50%;
-        }
-        .timer-container {
-            position: relative;
-            width: 280px;
-            height: 280px;
-            margin: 0 auto;
-            padding: 0;
-            overflow: visible;
-        }
-        .timer-controls {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-center mb-8 dark:text-white">Pomodoro Timer</h1>
-
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
-            <!-- Assignment Selection -->
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Working on:</label>
-                <select id="assignment-select" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                    <option value="">Select an assignment...</option>
-                </select>
-            </div>
-
-            <!-- Timer Display -->
-            <div class="flex flex-col items-center mb-8">
-                <div class="mb-4">
-                    <span id="timer-status" class="text-xl font-semibold dark:text-white">Focus Time</span>
-                    <span id="interval-count" class="text-gray-500 dark:text-gray-400 ml-2">(1/4)</span>
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+                            <i class="fas fa-stopwatch text-indigo-600 dark:text-indigo-400"></i>
+                        </div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Focus Timer</h1>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="timer-status" class="px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-medium">
+                            Focus Time
+                        </span>
+                        <span id="interval-count" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-sm font-medium">
+                            Round 1/4
+                        </span>
+                    </div>
                 </div>
-                
-                <div class="timer-container">
-                    <svg class="progress-ring w-full h-full" viewBox="0 0 120 120">
-                        <circle class="progress-ring__circle" stroke="#E5E7EB" stroke-width="8" fill="transparent" r="50" cx="60" cy="60"/>
-                        <circle id="progress-circle" class="progress-ring__circle" stroke="#3B82F6" stroke-width="8" 
-                                stroke-dasharray="314, 314" fill="transparent" r="50" cx="60" cy="60"/>
-                    </svg>
-                    <div class="timer-controls">
-                        <div id="time-display" class="timer-display">25:00</div>
-                        <div class="flex justify-center space-x-4">
-                            <button id="start-pause" class="px-4 py-1.5 bg-green-500 text-white rounded hover:bg-green-600 text-sm">
-                                <i class="fas fa-play"></i>
-                            </button>
-                            <button id="reset" class="px-4 py-1.5 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm">
-                                <i class="fas fa-redo"></i>
-                            </button>
+
+                <div class="p-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <!-- Left Column: Timer -->
+                        <div class="flex flex-col items-center justify-center">
+                            <div class="timer-container relative mb-8 w-64 h-64">
+                                <svg class="progress-ring w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                                    <circle class="text-gray-200 dark:text-gray-700" stroke="currentColor" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                                    <circle id="progress-circle" class="text-indigo-600 dark:text-indigo-500 transition-all duration-1000 ease-linear" 
+                                            stroke="currentColor" stroke-width="8" stroke-linecap="round"
+                                            stroke-dasharray="327" stroke-dashoffset="0" fill="transparent" r="52" cx="60" cy="60"/>
+                                </svg>
+                                
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <div id="time-display" class="text-6xl font-bold text-gray-900 dark:text-white font-mono tracking-tighter">25:00</div>
+                                    <p id="current-phase" class="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium uppercase tracking-wide">Focus</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4 w-full max-w-xs">
+                                <button id="start-pause" class="flex-1 py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/30 transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                                    <i class="fas fa-play"></i>
+                                    <span>Start</span>
+                                </button>
+                                <button id="reset" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold transition-colors">
+                                    <i class="fas fa-redo-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Controls & Stats -->
+                        <div class="space-y-8">
+                            <!-- Assignment Selection -->
+                            <div class="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <i class="fas fa-tasks mr-2 text-indigo-500"></i>Working on
+                                </label>
+                                <select id="assignment-select" class="w-full p-3 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-shadow shadow-sm">
+                                    <option value="">Select an assignment...</option>
+                                </select>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                    Select an assignment to track your progress automatically.
+                                </p>
+                            </div>
+
+                            <!-- Session Stats -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                                    <div class="text-indigo-600 dark:text-indigo-400 text-sm font-medium mb-1">Total Focus</div>
+                                    <div class="text-2xl font-bold text-gray-900 dark:text-white">
+                                        <span id="total-focus-time">0</span><span class="text-sm font-normal text-gray-500 ml-1">min</span>
+                                    </div>
+                                </div>
+                                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100 dark:border-green-800">
+                                    <div class="text-green-600 dark:text-green-400 text-sm font-medium mb-1">Completed</div>
+                                    <div class="text-2xl font-bold text-gray-900 dark:text-white">
+                                        <span id="completed-pomodoros">0</span><span class="text-sm font-normal text-gray-500 ml-1">pomodoros</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Break Suggestion (Hidden by default) -->
+                            <div id="break-suggestion" class="hidden bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl border border-blue-100 dark:border-blue-800 animation-fade-in">
+                                <div class="flex items-start gap-4">
+                                    <div class="p-3 bg-blue-100 dark:bg-blue-800 rounded-full">
+                                        <i class="fas fa-coffee text-blue-600 dark:text-blue-300 text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">Break Time!</h3>
+                                        <p id="break-activity" class="text-gray-600 dark:text-gray-300 mb-4">Time for a quick recharge.</p>
+                                        <div class="flex gap-3">
+                                            <button id="start-break" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors">
+                                                Start Break (<span id="break-duration">5</span>m)
+                                            </button>
+                                            <button id="skip-break" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors">
+                                                Skip
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Break Activity Suggestion -->
-            <div id="break-suggestion" class="hidden bg-blue-50 p-4 rounded-lg mb-8">
-                <h3 class="text-lg font-semibold mb-2">Break Time Suggestion</h3>
-                <p id="break-activity" class="mb-4">It's time for a break! How about a quick stretch?</p>
-                <div class="flex space-x-4">
-                    <button id="start-break" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                        Start <span id="break-duration">5</span>-min Break
-                    </button>
-                    <button id="skip-break" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
-                        Skip Break
-                    </button>
-                </div>
-            </div>
-
-            <!-- Assignment details are shown via JS when selected above -->
-
-            <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-gray-50 p-4 rounded">
-                    <h4 class="font-semibold">Today's Focus</h4>
-                    <p id="today-focus" class="text-2xl font-bold">0h 0m</p>
-                </div>
-                <div class="bg-gray-50 p-4 rounded">
-                    <h4 class="font-semibold">Completed Intervals</h4>
-                    <p id="completed-intervals" class="text-2xl font-bold">0</p>
-                </div>
-                <div class="bg-gray-50 p-4 rounded">
-                    <h4 class="font-semibold">Next Long Break</h4>
-                    <p id="next-long-break" class="text-2xl font-bold">2 intervals</p>
-                </div>
-            </div>
         </div>
     </div>
 
     <!-- Break Modal -->
-    <div id="break-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-            <h2 class="text-2xl font-bold mb-4">Break Time!</h2>
-            <p id="break-message" class="mb-6">Your break is starting. Take a moment to relax!</p>
+    <div id="break-modal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all">
+            <div class="text-center mb-8">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900 mb-4">
+                    <i class="fas fa-mug-hot text-blue-600 dark:text-blue-400 text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Break Time!</h2>
+                <p id="break-message" class="text-gray-600 dark:text-gray-300">Your break is starting. Take a moment to relax!</p>
+            </div>
             
-            <div class="flex justify-center mb-6">
-                <div class="text-center">
-                    <div id="break-timer" class="text-5xl font-bold mb-2">05:00</div>
-                    <div id="break-activity-name" class="text-lg text-gray-600">Stretching</div>
+            <div class="flex justify-center mb-8">
+                <div class="text-center bg-gray-50 dark:bg-gray-700/50 rounded-xl p-6 w-full">
+                    <div id="break-timer" class="text-5xl font-bold text-indigo-600 dark:text-indigo-400 mb-2 font-mono">05:00</div>
+                    <div id="break-activity-name" class="text-lg font-medium text-gray-700 dark:text-gray-200">Stretching</div>
                 </div>
             </div>
             
-            <button id="end-break-early" class="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                End Break Early
-            </button>
-        </div>
-    </div>
-
-    <!-- Break Modal -->
-    <div id="break-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-            <h2 class="text-2xl font-bold mb-4">Time for a Break!</h2>
-            <p class="mb-6" id="break-message">Take a short break and stretch your legs.</p>
-            
-            <div class="mb-6">
-                <h3 class="font-semibold mb-2">Suggested Activities:</h3>
-                <ul id="break-activities" class="space-y-2">
-                    <!-- Activities will be populated by JavaScript -->
-                </ul>
-            </div>
-            
-            <button id="end-break-early" class="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            <button id="end-break-early" class="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold transition-colors">
                 End Break Early
             </button>
         </div>
@@ -153,8 +136,5 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="/static/js/timer.js"></script>
-    <script src="/static/js/time_limit.js"></script>
-
+<script src="{{ url_for('static', path='/js/timer.js') }}"></script>
 {% endblock %}

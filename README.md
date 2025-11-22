@@ -26,6 +26,35 @@ A web application for managing assignments, scheduling study time, and preventin
   - Configure auto-start preferences
   - Set number of short breaks before long breaks
 
+- **Gamification & Social**
+  - Earn points for completing assignments and focus sessions
+  - Maintain daily streaks
+  - Unlock achievements
+  - Compete on the leaderboard
+
+- **Modern Experience**
+  - Beautiful, responsive UI built with Tailwind CSS
+  - Full Dark Mode support
+  - Interactive Calendar with Month and Day views
+
+## Project Structure
+
+```
+timeflow/
+├── app.py                 # Main application entry point
+├── backend/               # Backend logic
+│   ├── models/            # Database models
+│   ├── routes/            # API routes
+│   ├── schemas/           # Pydantic schemas
+│   └── database.py        # Database connection
+├── scripts/               # Utility scripts
+├── static/                # Static assets (JS, CSS)
+├── templates/             # HTML templates (Jinja2)
+├── tests/                 # Test suite
+│   └── e2e/               # End-to-end tests
+└── requirements.txt       # Project dependencies
+```
+
 ## Setup
 
 ### Prerequisites
@@ -53,14 +82,14 @@ A web application for managing assignments, scheduling study time, and preventin
 
 3. **Install dependencies**
    ```bash
-   pip install -r config/requirements.txt
+   pip install -r requirements.txt
    ```
 
 4. **Initialize the database**
 
    The database will be automatically created when you first run the application. If you need to manually initialize it:
    ```bash
-   python -c "from backend.database import init_db; init_db()"
+   python scripts/init_db.py
    ```
 
 5. **Run the application**

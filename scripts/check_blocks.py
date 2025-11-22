@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from backend.models.calendar_models import CalendarBlock
 from backend.models.models import SessionLocal
 
