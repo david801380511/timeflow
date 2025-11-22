@@ -65,7 +65,7 @@ timeflow/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/timeflow.git
+   git clone https://github.com/david801380511/timeflow.git
    cd timeflow
    ```
 

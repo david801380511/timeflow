@@ -60,6 +60,10 @@ def get_break_activities(db: Session, activity_type: str = None):
 
 def create_break_activity(db: Session, activity: schemas.BreakActivityCreate):
     settings = get_settings(db)
+    if not settings:
+        # Create default settings if they don't exist
+        settings = update_settings(db, schemas.UserSettingsCreate())
+        
     db_activity = models.BreakActivity(**activity.dict(), settings_id=settings.id)
     db.add(db_activity)
     db.commit()
