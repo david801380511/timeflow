@@ -400,3 +400,193 @@ async def reset_password(
     del password_reset_tokens[token]
     
     return JSONResponse(content={"message": "Password updated successfully"})
+
+
+# Account Settings Endpoints
+
+@router.get("/account-settings", response_class=HTMLResponse)
+async def account_settings_page(request: Request, db: Session = Depends(get_db)):
+    """Show account settings page"""
+    user = get_current_user(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=303)
+
+    return templates.TemplateResponse("account_settings.html", {
+        "request": request,
+        "user": user
+    })
+
+
+@router.get("/api/account")
+async def get_account_info(request: Request, db: Session = Depends(get_db)):
+    """Get current user's account information"""
+    user = get_current_user(request, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "created_at": user.created_at.isoformat()
+    }
+
+
+@router.patch("/api/account/username")
+async def update_username(
+    request: Request,
+    new_username: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Update user's username"""
+    user = get_current_user(request, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    # Validate username
+    if len(new_username) < 3:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Username must be at least 3 characters long"}
+        )
+
+    if len(new_username) > 50:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Username must be less than 50 characters"}
+        )
+
+    # Check if username is already taken
+    existing = db.query(User).filter(
+        User.username == new_username,
+        User.id != user.id
+    ).first()
+
+    if existing:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Username already taken"}
+        )
+
+    # Update username
+    user.username = new_username
+    db.commit()
+
+    return JSONResponse(content={
+        "message": "Username updated successfully",
+        "username": new_username
+    })
+
+
+@router.patch("/api/account/email")
+async def update_email(
+    request: Request,
+    new_email: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Update user's email"""
+    user = get_current_user(request, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    # Basic email validation
+    if '@' not in new_email or '.' not in new_email:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid email format"}
+        )
+
+    # Check if email is already taken
+    existing = db.query(User).filter(
+        User.email == new_email,
+        User.id != user.id
+    ).first()
+
+    if existing:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Email already in use"}
+        )
+
+    # Update email
+    user.email = new_email
+    db.commit()
+
+    return JSONResponse(content={
+        "message": "Email updated successfully",
+        "email": new_email
+    })
+
+
+@router.patch("/api/account/password")
+async def update_password(
+    request: Request,
+    current_password: str = Form(...),
+    new_password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Update user's password"""
+    user = get_current_user(request, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    # Verify current password
+    if not user.check_password(current_password):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Current password is incorrect"}
+        )
+
+    # Validate new password
+    if len(new_password) < 6:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Password must be at least 6 characters long"}
+        )
+
+    # Update password
+    user.set_password(new_password)
+    db.commit()
+
+    return JSONResponse(content={
+        "message": "Password updated successfully"
+    })
+
+
+@router.delete("/api/account")
+async def delete_account(
+    request: Request,
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Delete user account"""
+    user = get_current_user(request, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    # Verify password
+    if not user.check_password(password):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Password is incorrect"}
+        )
+
+    # Delete all user data
+    # Delete assignments
+    db.query(Assignment).filter(Assignment.user_id == user.id).delete()
+    
+    # Delete achievements
+    db.query(UserAchievement).filter(UserAchievement.user_id == user.id).delete()
+    
+    # Delete user
+    db.delete(user)
+    db.commit()
+
+    # Log out
+    session_token = request.cookies.get("session_token")
+    if session_token and session_token in active_sessions:
+        del active_sessions[session_token]
+
+    return JSONResponse(content={
+        "message": "Account deleted successfully"
+    })
