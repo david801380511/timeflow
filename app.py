@@ -36,22 +36,30 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, db: Session = Depends(get_db)):
-    user = get_current_user(request, db)
+    try:
+        user = get_current_user(request, db)
+        if not user:
+            return RedirectResponse(url="/login", status_code=302)
 
-    # If user is logged in, show only their assignments
-    if user:
+        # If user is logged in, show only their assignments
         assignments = db.query(models.Assignment).filter(
             models.Assignment.user_id == user.id
         ).all()
-    else:
-        # Show all assignments (for backward compatibility)
-        assignments = db.query(models.Assignment).all()
+        
+        # Debug: Print assignments to check for data issues
+        print(f"Found {len(assignments)} assignments for user {user.username}")
+        for a in assignments:
+            print(f"Assignment: {a.name}, Due: {a.due_date} (Type: {type(a.due_date)})")
 
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "assignments": assignments,
-        "user": user
-    })
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "assignments": assignments,
+            "user": user
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return HTMLResponse(content=f"<h1>Internal Server Error</h1><pre>{traceback.format_exc()}</pre>", status_code=500)
 
 @app.post("/assignments")
 async def create_assignment(
@@ -59,12 +67,17 @@ async def create_assignment(
     name: str = Form(...),
     due_date: str = Form(...),
     estimated_time: int = Form(...),
+    time_unit: str = Form("minutes"),
     description: str = Form(None),
     priority: int = Form(2),
     db: Session = Depends(get_db)
 ):
     try:
         user = get_current_user(request, db)
+
+        # Convert hours to minutes if needed
+        if time_unit == "hours":
+            estimated_time = estimated_time * 60
 
         # Check for duplicate assignment name
         existing = db.query(models.Assignment).filter(
@@ -111,12 +124,16 @@ async def create_assignment(
 @app.get("/timer", response_class=HTMLResponse)
 async def timer_page(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse("timer.html", {"request": request, "user": user})
 
 # Add a route to serve the settings page
 @app.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse("settings.html", {"request": request, "user": user})
 
 # Assignments API endpoint is now in calendar_routes.py to avoid duplication
@@ -138,6 +155,57 @@ async def debug_assignments(db: Session = Depends(get_db)):
             "completed": a.completed if a.completed is not None else False,
         })
     return JSONResponse(content=result)
+
+@app.get("/api/assignments/{assignment_id}")
+async def get_assignment(assignment_id: int, db: Session = Depends(get_db)):
+    assignment = db.query(models.Assignment).filter(models.Assignment.id == assignment_id).first()
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    return {
+        "id": assignment.id,
+        "name": assignment.name,
+        "description": assignment.description or "",
+        "due_date": assignment.due_date.isoformat() if assignment.due_date else None,
+        "estimated_time": assignment.estimated_time,
+        "time_spent": assignment.time_spent,
+        "priority": assignment.priority,
+        "completed": assignment.completed
+    }
+
+@app.put("/api/assignments/{assignment_id}")
+async def update_assignment(
+    assignment_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    data = await request.json()
+    assignment = db.query(models.Assignment).filter(models.Assignment.id == assignment_id).first()
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    if "description" in data:
+        assignment.description = data["description"]
+    
+    if "progress_percent" in data:
+        percent = float(data["progress_percent"])
+        # Calculate time spent based on percentage of estimated time
+        # Ensure we don't exceed 100% logic if not desired, but user might want to track over-time?
+        # User said "finished 25% already", implying percentage of completion.
+        assignment.time_spent = int((percent / 100.0) * assignment.estimated_time)
+        
+        if percent >= 100:
+            assignment.completed = True
+            assignment.status = 'completed'
+        elif percent > 0:
+            assignment.completed = False
+            assignment.status = 'in_progress'
+        else:
+            assignment.completed = False
+            assignment.status = 'new'
+
+    db.commit()
+    return {"status": "success", "message": "Assignment updated"}
 
 @app.post("/api/assignments/{assignment_id}/delete")
 async def delete_assignment(assignment_id: int, db: Session = Depends(get_db)):

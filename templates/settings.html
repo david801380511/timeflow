@@ -185,6 +185,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', path='/js/settings.js') }}"></script>
+<script src="{{ url_for('static', path='/js/settings.js') }}?v={{ range(1, 10000) | random }}"></script>
 <script src="{{ url_for('static', path='/js/time_limit.js') }}"></script>
 {% endblock %}

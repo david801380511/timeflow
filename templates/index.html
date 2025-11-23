@@ -2,6 +2,22 @@
 
 {% block title %}Assignment Tracker{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<style>
+    .flatpickr-calendar {
+        font-family: 'Inter', sans-serif;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .flatpickr-day.selected {
+        background: #4f46e5;
+        border-color: #4f46e5;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
     <div class="max-w-[95%] mx-auto px-6 py-10">
         <div class="flex flex-col lg:flex-row gap-10">
@@ -24,19 +40,35 @@
 
                         <div>
                             <label for="due_date" class="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
-                            <input type="datetime-local" id="due_date" name="due_date" required
-                                   class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors dark:[color-scheme:dark] text-lg">
+                            <div class="relative">
+                                <input type="text" id="due_date" name="due_date" required placeholder="Select date and time"
+                                       class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-lg cursor-pointer">
+                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                    <i class="far fa-calendar-alt text-gray-400"></i>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
                             <label for="estimated_time" class="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">Estimated Duration</label>
-                            <div class="flex gap-3">
+                            <div class="flex gap-3" x-data="{ unit: 'minutes' }">
                                 <input type="number" id="estimated_time" name="estimated_time" min="1" required placeholder="30"
                                        class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-lg">
-                                <select id="time_unit" class="px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 text-lg">
-                                    <option value="minutes">Mins</option>
-                                    <option value="hours">Hours</option>
-                                </select>
+                                
+                                <!-- Custom Toggle for Time Unit -->
+                                <div class="flex bg-gray-200 dark:bg-gray-700 rounded-xl p-1 w-48 shrink-0">
+                                    <button type="button" @click="unit = 'minutes'" 
+                                            :class="{'bg-white dark:bg-gray-600 shadow text-indigo-600 dark:text-indigo-400': unit === 'minutes', 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200': unit !== 'minutes'}" 
+                                            class="flex-1 py-2 px-2 rounded-lg text-sm font-bold transition-all">
+                                        Mins
+                                    </button>
+                                    <button type="button" @click="unit = 'hours'" 
+                                            :class="{'bg-white dark:bg-gray-600 shadow text-indigo-600 dark:text-indigo-400': unit === 'hours', 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200': unit !== 'hours'}" 
+                                            class="flex-1 py-2 px-2 rounded-lg text-sm font-bold transition-all">
+                                        Hours
+                                    </button>
+                                    <input type="hidden" id="time_unit" name="time_unit" :value="unit">
+                                </div>
                             </div>
                         </div>
 
@@ -90,14 +122,22 @@
                                             <div class="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400 mb-3">
                                                 <div class="flex items-center gap-1.5">
                                                     <i class="far fa-calendar-alt text-indigo-500"></i>
-                                                    {{ assignment.due_date.strftime('%b %d, %I:%M %p') }}
+                                                    {% if assignment.due_date %}
+                                                        {{ assignment.due_date.strftime('%b %d, %I:%M %p') }}
+                                                    {% else %}
+                                                        No Date
+                                                    {% endif %}
                                                 </div>
                                                 <div class="flex items-center gap-1.5">
                                                     <i class="far fa-clock text-indigo-500"></i>
-                                                    {% if assignment.estimated_time >= 60 %}
-                                                        {{ (assignment.estimated_time // 60) }}h {{ (assignment.estimated_time % 60) }}m
+                                                    {% if assignment.estimated_time %}
+                                                        {% if assignment.estimated_time >= 60 %}
+                                                            {{ (assignment.estimated_time // 60) }}h {{ (assignment.estimated_time % 60) }}m
+                                                        {% else %}
+                                                            {{ assignment.estimated_time }}m
+                                                        {% endif %}
                                                     {% else %}
-                                                        {{ assignment.estimated_time }}m
+                                                        0m
                                                     {% endif %}
                                                 </div>
                                             </div>
@@ -157,6 +197,48 @@
                     {% endif %}
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Assignment Modal -->
+    <div id="edit-modal" class="hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+        <div class="relative mx-auto p-6 border w-full max-w-md shadow-2xl rounded-xl bg-white dark:bg-gray-800 transform transition-all">
+            <div class="text-center mb-6">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900 mb-4">
+                    <i class="fas fa-edit text-blue-600 dark:text-blue-400 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Edit Assignment</h3>
+            </div>
+
+            <form id="edit-form" class="space-y-4">
+                <input type="hidden" id="edit-assignment-id">
+                
+                <div>
+                    <label for="edit-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                    <textarea id="edit-description" rows="3" 
+                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors"></textarea>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label for="edit-progress" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Progress</label>
+                        <span class="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                            <span id="edit-progress-value">0</span>%
+                        </span>
+                    </div>
+                    <input type="range" id="edit-progress" min="0" max="100" value="0"
+                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-indigo-600">
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" id="edit-cancel" class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-lg shadow-indigo-500/30 transition-all transform hover:scale-[1.02]">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -296,5 +378,21 @@
     });
   });
 </script>
+<script src="{{ url_for('static', path='/js/assignments.js') }}"></script>
 <script src="{{ url_for('static', path='/js/progress_tracker.js') }}"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#due_date", {
+            enableTime: true,
+            dateFormat: "Y-m-d\\TH:i", // Format matches datetime-local for backend compatibility
+            altInput: true,             // Show a friendly format to user
+            altFormat: "F j, Y at h:i K", // e.g. November 23, 2025 at 3:30 PM
+            minDate: "today",           // Prevent past dates
+            time_24hr: false,
+            disableMobile: "true"       // Force the custom picker on mobile
+        });
+    });
+</script>
 {% endblock %}

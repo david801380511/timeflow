@@ -138,7 +138,7 @@
                 } else {
                     const data = await response.json();
                     const errorDiv = document.getElementById('error-message');
-                    errorDiv.textContent = data.detail || 'Signup failed';
+                    errorDiv.textContent = data.error || data.detail || 'Signup failed';
                     errorDiv.classList.remove('hidden');
                 }
             } catch (error) {

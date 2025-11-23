@@ -49,7 +49,7 @@
                         <label for="password" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                             Password
                         </label>
-                        <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+                        <a href="/forgot-password" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
                             Forgot password?
                         </a>
                     </div>
@@ -119,7 +119,7 @@
                 } else {
                     const data = await response.json();
                     const errorDiv = document.getElementById('error-message');
-                    errorDiv.textContent = data.detail || 'Login failed';
+                    errorDiv.textContent = data.error || data.detail || 'Login failed';
                     errorDiv.classList.remove('hidden');
                 }
             } catch (error) {

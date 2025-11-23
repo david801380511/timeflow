@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -18,6 +18,8 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 @router.get("/calendar", response_class=HTMLResponse)
 def calendar_page(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
+    if not user:
+        return RedirectResponse(url="/login", status_code=302)
     return templates.TemplateResponse("calendar.html", {"request": request, "user": user})
 
 @router.get("/api/calendar/blocks")

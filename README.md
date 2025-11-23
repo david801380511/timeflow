@@ -6,6 +6,7 @@ A web application for managing assignments, scheduling study time, and preventin
 
 - **Assignment Management**
   - Add assignments with names, due dates, and estimated completion times
+  - Edit assignment details and update progress via slider
   - Track progress on assignments
   - View all saved assignments in an organized list
 

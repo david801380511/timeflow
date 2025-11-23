@@ -13,6 +13,7 @@ templates = Jinja2Templates(directory="templates")
 # Simple session storage (in-memory for class project)
 # In production, you'd use Redis or database-backed sessions
 active_sessions = {}
+password_reset_tokens = {}  # Store reset tokens: {token: user_id}
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
@@ -126,29 +127,40 @@ async def signup(
     db: Session = Depends(get_db)
 ):
     """Create new user account"""
-    # Check if username or email already exists
-    existing_user = db.query(User).filter(
-        (User.username == username) | (User.email == email)
-    ).first()
+    try:
+        # Check if username or email already exists
+        existing_user = db.query(User).filter(
+            (User.username == username) | (User.email == email)
+        ).first()
 
-    if existing_user:
+        if existing_user:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Username or email already exists"}
+            )
+
+        # Create new user
+        new_user = User(username=username, email=email)
+        new_user.set_password(password)
+
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        # Award "First Steps" achievement for creating account
+        try:
+            check_and_award_achievements(new_user, db)
+        except Exception as e:
+            print(f"Error awarding achievements: {e}")
+            # Don't fail signup if achievements fail
+
+        return JSONResponse(content={"message": "Signup successful"})
+    except Exception as e:
+        print(f"Signup error: {e}")
         return JSONResponse(
-            status_code=400,
-            content={"error": "Username or email already exists"}
+            status_code=500,
+            content={"error": f"Internal Server Error: {str(e)}"}
         )
-
-    # Create new user
-    new_user = User(username=username, email=email)
-    new_user.set_password(password)
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    # Award "First Steps" achievement for creating account
-    check_and_award_achievements(new_user, db)
-
-    return RedirectResponse(url="/login", status_code=303)
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -164,32 +176,43 @@ async def login(
     db: Session = Depends(get_db)
 ):
     """Login user"""
-    user = db.query(User).filter(User.username == username).first()
+    try:
+        user = db.query(User).filter(User.username == username).first()
 
-    if not user or not user.check_password(password):
-        return JSONResponse(
-            status_code=401,
-            content={"error": "Invalid username or password"}
+        if not user or not user.check_password(password):
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Invalid username or password"}
+            )
+
+        # Create session
+        import secrets
+        session_token = secrets.token_urlsafe(32)
+        active_sessions[session_token] = user.id
+
+        # Update user's streak
+        try:
+            update_user_streak(user, db)
+        except Exception as e:
+            print(f"Error updating streak: {e}")
+            # Don't fail login if streak update fails
+
+        # Create response with session cookie
+        response = JSONResponse(content={"message": "Login successful"})
+        response.set_cookie(
+            key="session_token",
+            value=session_token,
+            httponly=True,
+            max_age=86400 * 30  # 30 days
         )
 
-    # Create session
-    import secrets
-    session_token = secrets.token_urlsafe(32)
-    active_sessions[session_token] = user.id
-
-    # Update user's streak
-    update_user_streak(user, db)
-
-    # Create response with session cookie
-    response = RedirectResponse(url="/", status_code=303)
-    response.set_cookie(
-        key="session_token",
-        value=session_token,
-        httponly=True,
-        max_age=86400 * 30  # 30 days
-    )
-
-    return response
+        return response
+    except Exception as e:
+        print(f"Login error: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Internal Server Error: {str(e)}"}
+        )
 
 
 @router.get("/logout")
@@ -299,3 +322,73 @@ async def get_all_achievements(db: Session = Depends(get_db)):
         "requirement_type": ach.requirement_type,
         "requirement_value": ach.requirement_value
     } for ach in achievements]
+
+
+@router.get("/forgot-password", response_class=HTMLResponse)
+async def forgot_password_page(request: Request):
+    """Show forgot password page"""
+    return templates.TemplateResponse("forgot_password.html", {"request": request})
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    email: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Handle forgot password request"""
+    user = db.query(User).filter(User.email == email).first()
+    
+    if not user:
+        # Don't reveal if user exists or not for security
+        # But for this project, we'll just say sent
+        return JSONResponse(content={"message": "If an account exists with this email, a reset link has been sent."})
+
+    # Generate reset token
+    import secrets
+    token = secrets.token_urlsafe(32)
+    password_reset_tokens[token] = user.id
+    
+    # In a real app, send email here
+    # For this project, print to console
+    reset_link = f"http://127.0.0.1:8000/reset-password?token={token}"
+    print(f"\n{'='*50}")
+    print(f"PASSWORD RESET LINK FOR {email}:")
+    print(f"{reset_link}")
+    print(f"{'='*50}\n")
+    
+    return JSONResponse(content={"message": "Reset link has been printed to the server console (simulated email)."})
+
+
+@router.get("/reset-password", response_class=HTMLResponse)
+async def reset_password_page(request: Request, token: str):
+    """Show reset password page"""
+    if token not in password_reset_tokens:
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid or expired reset token"})
+        
+    return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
+
+
+@router.post("/reset-password")
+async def reset_password(
+    token: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Handle password reset"""
+    if token not in password_reset_tokens:
+        return JSONResponse(status_code=400, content={"error": "Invalid or expired reset token"})
+        
+    user_id = password_reset_tokens[token]
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        return JSONResponse(status_code=404, content={"error": "User not found"})
+        
+    # Update password
+    user.set_password(password)
+    db.commit()
+    
+    # Remove token
+    del password_reset_tokens[token]
+    
+    return JSONResponse(content={"message": "Password updated successfully"})

@@ -17,7 +17,7 @@ class BreakActivity(BreakActivityBase):
     settings_id: int
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # User Settings Models
 class UserSettingsBase(BaseModel):
@@ -39,7 +39,7 @@ class UserSettings(UserSettingsBase):
     break_activities: List[BreakActivity] = []
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Study Session Models
 class StudySessionBase(BaseModel):
@@ -55,7 +55,7 @@ class StudySession(StudySessionBase):
     end_time: Optional[datetime] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Assignment Models
 class AssignmentBase(BaseModel):
@@ -77,7 +77,7 @@ class Assignment(AssignmentBase):
     study_sessions: List[StudySession] = []
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Timer State
 class TimerState(BaseModel):
