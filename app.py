@@ -14,6 +14,8 @@ from backend.routes.break_routes import router as break_router
 from backend.routes.calendar_routes import router as calendar_router
 from backend.routes.limit_routes import router as limit_router
 from backend.routes.auth_routes import router as auth_router, get_current_user, check_and_award_achievements
+from backend.routes.notification_routes import router as notification_router
+import asyncio
 
 # Create all tables now that all models are imported
 Base.metadata.create_all(bind=engine)
@@ -29,6 +31,13 @@ app.include_router(break_router, prefix="/api", tags=["break"])
 app.include_router(calendar_router)
 app.include_router(limit_router, prefix="/api", tags=["limits"])
 app.include_router(auth_router, tags=["auth"])
+app.include_router(notification_router, tags=["notifications"])
+
+# Start notification scheduler on app startup
+@app.on_event("startup")
+async def startup_event():
+    from backend.services.notification_scheduler import scheduler
+    asyncio.create_task(scheduler.start())
 
 
 templates = Jinja2Templates(directory="templates")

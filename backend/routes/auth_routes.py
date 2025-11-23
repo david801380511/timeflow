@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models.user_models import User, Achievement, UserAchievement
 from backend.models.models import Assignment
+from backend.models.notification_models import create_default_notification_rules
 from datetime import datetime, timedelta
 
 router = APIRouter()
@@ -153,6 +154,13 @@ async def signup(
         except Exception as e:
             print(f"Error awarding achievements: {e}")
             # Don't fail signup if achievements fail
+
+        # Create default notification rules for new user
+        try:
+            create_default_notification_rules(new_user.id, db)
+        except Exception as e:
+            print(f"Error creating notification rules: {e}")
+            # Don't fail signup if notification setup fails
 
         return JSONResponse(content={"message": "Signup successful"})
     except Exception as e:
