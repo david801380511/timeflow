@@ -7,18 +7,18 @@ const puppeteer = require('puppeteer');
   console.log('Taking final screenshots of the app...');
 
   // Homepage
-  await page.goto('http://127.0.0.1:8000/', { waitUntil: 'networkidle2' });
+  await page.goto('http://127.0.0.1:8001/', { waitUntil: 'networkidle2' });
   await page.screenshot({ path: 'final-homepage.png', fullPage: true });
   console.log('✓ Homepage screenshot saved');
 
   // Timer
-  await page.goto('http://127.0.0.1:8000/timer', { waitUntil: 'networkidle2' });
+  await page.goto('http://127.0.0.1:8001/timer', { waitUntil: 'networkidle2' });
   await new Promise(resolve => setTimeout(resolve, 2000));
   await page.screenshot({ path: 'final-timer.png', fullPage: true });
   console.log('✓ Timer screenshot saved');
 
   // Calendar
-  await page.goto('http://127.0.0.1:8000/calendar', { waitUntil: 'networkidle2' });
+  await page.goto('http://127.0.0.1:8001/calendar', { waitUntil: 'networkidle2' });
   await new Promise(resolve => setTimeout(resolve, 1000));
   await page.screenshot({ path: 'final-calendar-month.png', fullPage: true });
   console.log('✓ Calendar month view screenshot saved');

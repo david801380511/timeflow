@@ -4,6 +4,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from datetime import datetime
 from sqlalchemy.orm import Session
+from contextlib import asynccontextmanager
+import asyncio
 
 # Import models in correct order
 from backend.database import get_db, Base, engine
@@ -26,19 +28,21 @@ user_models.create_default_achievements()
 # Initialize default settings
 models.create_tables()
 
-app = FastAPI()
+# Lifespan context manager for startup/shutdown events
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Start notification scheduler
+    from backend.services.notification_scheduler import scheduler
+    asyncio.create_task(scheduler.start())
+    yield
+    # Shutdown: (Add any cleanup code here if needed)
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(break_router, prefix="/api", tags=["break"])
 app.include_router(calendar_router)
 app.include_router(limit_router, prefix="/api", tags=["limits"])
 app.include_router(auth_router, tags=["auth"])
 app.include_router(notification_router, tags=["notifications"])
-
-# Start notification scheduler on app startup
-@app.on_event("startup")
-async def startup_event():
-    from backend.services.notification_scheduler import scheduler
-    asyncio.create_task(scheduler.start())
-
 
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -60,11 +64,15 @@ async def index(request: Request, db: Session = Depends(get_db)):
         for a in assignments:
             print(f"Assignment: {a.name}, Due: {a.due_date} (Type: {type(a.due_date)})")
 
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "assignments": assignments,
-            "user": user
-        })
+        return templates.TemplateResponse(
+            request=request,
+            name="index.html",
+            context={
+                "request": request,
+                "assignments": assignments,
+                "user": user
+            }
+        )
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -135,7 +143,7 @@ async def timer_page(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse("timer.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request=request, name="timer.html", context={"request": request, "user": user})
 
 # Add a route to serve the settings page
 @app.get("/settings", response_class=HTMLResponse)
@@ -143,7 +151,7 @@ async def settings_page(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse("settings.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request=request, name="settings.html", context={"request": request, "user": user})
 
 # Assignments API endpoint is now in calendar_routes.py to avoid duplication
 

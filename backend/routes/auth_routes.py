@@ -117,7 +117,7 @@ def update_user_streak(user: User, db: Session):
 @router.get("/signup", response_class=HTMLResponse)
 async def signup_page(request: Request):
     """Show signup page"""
-    return templates.TemplateResponse("signup.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="signup.html", context={"request": request})
 
 
 @router.post("/signup")
@@ -174,7 +174,7 @@ async def signup(
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     """Show login page"""
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="login.html", context={"request": request})
 
 
 @router.post("/login")
@@ -272,10 +272,14 @@ async def profile_page(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    return templates.TemplateResponse("profile.html", {
-        "request": request,
-        "user": user
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="profile.html",
+        context={
+            "request": request,
+            "user": user
+        }
+    )
 
 
 @router.get("/api/leaderboard")
@@ -310,10 +314,14 @@ async def leaderboard_page(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    return templates.TemplateResponse("leaderboard.html", {
-        "request": request,
-        "user": user
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="leaderboard.html",
+        context={
+            "request": request,
+            "user": user
+        }
+    )
 
 
 @router.get("/api/achievements")
@@ -335,7 +343,7 @@ async def get_all_achievements(db: Session = Depends(get_db)):
 @router.get("/forgot-password", response_class=HTMLResponse)
 async def forgot_password_page(request: Request):
     """Show forgot password page"""
-    return templates.TemplateResponse("forgot_password.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="forgot_password.html", context={"request": request})
 
 
 @router.post("/forgot-password")
@@ -371,9 +379,9 @@ async def forgot_password(
 async def reset_password_page(request: Request, token: str):
     """Show reset password page"""
     if token not in password_reset_tokens:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid or expired reset token"})
+        return templates.TemplateResponse(request=request, name="login.html", context={"request": request, "error": "Invalid or expired reset token"})
         
-    return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
+    return templates.TemplateResponse(request=request, name="reset_password.html", context={"request": request, "token": token})
 
 
 @router.post("/reset-password")
@@ -411,10 +419,14 @@ async def account_settings_page(request: Request, db: Session = Depends(get_db))
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    return templates.TemplateResponse("account_settings.html", {
-        "request": request,
-        "user": user
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="account_settings.html",
+        context={
+            "request": request,
+            "user": user
+        }
+    )
 
 
 @router.get("/api/account")

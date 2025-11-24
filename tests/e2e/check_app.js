@@ -5,7 +5,20 @@ const puppeteer = require('puppeteer');
   const page = await browser.newPage();
 
   console.log('Checking homepage...');
-  await page.goto('http://127.0.0.1:8000/', { waitUntil: 'networkidle2' });
+  await page.goto('http://127.0.0.1:8001/', { waitUntil: 'networkidle2' });
+  
+  if (page.url().includes('/login')) {
+      console.log('Redirected to login. Logging in...');
+      // Assuming testuser exists from previous tests or we need to signup?
+      // Let's try to login with testuser/password123
+      await page.type('input[name="username"]', 'testuser');
+      await page.type('input[name="password"]', 'password123');
+      await Promise.all([
+          page.waitForNavigation(),
+          page.click('button[type="submit"]')
+      ]);
+  }
+
   await page.screenshot({ path: 'homepage.png', fullPage: true });
 
   // Get assignment time display
@@ -18,7 +31,7 @@ const puppeteer = require('puppeteer');
   console.log('Homepage time displays:', timeDisplays);
 
   console.log('\nChecking timer page...');
-  await page.goto('http://127.0.0.1:8000/timer', { waitUntil: 'networkidle2' });
+  await page.goto('http://127.0.0.1:8001/timer', { waitUntil: 'networkidle2' });
   // Wait a bit for JS to load assignments
   await new Promise(resolve => setTimeout(resolve, 2000));
   await page.screenshot({ path: 'timer-page.png', fullPage: true });
@@ -32,7 +45,7 @@ const puppeteer = require('puppeteer');
   console.log('Timer dropdown options:', dropdownOptions);
 
   console.log('\nChecking calendar page...');
-  await page.goto('http://127.0.0.1:8000/calendar', { waitUntil: 'networkidle2' });
+  await page.goto('http://127.0.0.1:8001/calendar', { waitUntil: 'networkidle2' });
   await page.screenshot({ path: 'calendar-page.png', fullPage: true });
 
   // Check for break blocks

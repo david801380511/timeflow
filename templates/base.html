@@ -96,7 +96,7 @@
                     <!-- Theme Toggle -->
                     <button 
                         @click="
-                            if (localStorage.theme === 'dark') {
+                            if (document.documentElement.classList.contains('dark')) {
                                 localStorage.theme = 'light';
                                 document.documentElement.classList.remove('dark');
                             } else {
@@ -202,7 +202,7 @@
                     </div>
                     <button 
                         @click="
-                            if (localStorage.theme === 'dark') {
+                            if (document.documentElement.classList.contains('dark')) {
                                 localStorage.theme = 'light';
                                 document.documentElement.classList.remove('dark');
                             } else {

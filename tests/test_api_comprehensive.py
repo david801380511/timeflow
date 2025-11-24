@@ -67,15 +67,16 @@ class TestAuth:
             "confirm_password": "password123"
         })
         assert response.status_code == 200
-        assert response.url.path == "/login" # Should redirect to login or be on login page
+        assert response.json() == {"message": "Signup successful"}
 
         # Login
         response = client.post("/login", data={
             "username": "testuser",
             "password": "password123"
         }, follow_redirects=False)
-        assert response.status_code == 303
+        assert response.status_code == 200
         assert "session_token" in response.cookies
+        assert response.json() == {"message": "Login successful"}
 
     def test_login_invalid_credentials(self, db_session):
         response = client.post("/login", data={

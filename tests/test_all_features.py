@@ -8,7 +8,7 @@ import time
 from datetime import datetime, timedelta
 
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8001"
 
 
 class TestAssignmentManagement:

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
@@ -16,8 +16,7 @@ class BreakActivity(BreakActivityBase):
     id: int
     settings_id: int
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # User Settings Models
 class UserSettingsBase(BaseModel):
@@ -38,8 +37,7 @@ class UserSettings(UserSettingsBase):
     id: int
     break_activities: List[BreakActivity] = []
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Study Session Models
 class StudySessionBase(BaseModel):
@@ -54,8 +52,7 @@ class StudySession(StudySessionBase):
     start_time: datetime
     end_time: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Assignment Models
 class AssignmentBase(BaseModel):
@@ -76,8 +73,7 @@ class Assignment(AssignmentBase):
     updated_at: datetime
     study_sessions: List[StudySession] = []
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Timer State
 class TimerState(BaseModel):

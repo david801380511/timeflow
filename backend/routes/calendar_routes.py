@@ -20,7 +20,7 @@ def calendar_page(request: Request, db: Session = Depends(get_db)):
     user = get_current_user(request, db)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
-    return templates.TemplateResponse("calendar.html", {"request": request, "user": user})
+    return templates.TemplateResponse(request=request, name="calendar.html", context={"request": request, "user": user})
 
 @router.get("/api/calendar/blocks")
 def list_blocks(start: str, end: str, db: Session = Depends(get_db)):

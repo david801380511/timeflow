@@ -43,10 +43,10 @@ def get_settings(db: Session):
 def update_settings(db: Session, settings: schemas.UserSettingsCreate):
     db_settings = db.query(models.UserSettings).first()
     if not db_settings:
-        db_settings = models.UserSettings(**settings.dict())
+        db_settings = models.UserSettings(**settings.model_dump())
         db.add(db_settings)
     else:
-        for key, value in settings.dict().items():
+        for key, value in settings.model_dump().items():
             setattr(db_settings, key, value)
     db.commit()
     db.refresh(db_settings)
@@ -64,7 +64,7 @@ def create_break_activity(db: Session, activity: schemas.BreakActivityCreate):
         # Create default settings if they don't exist
         settings = update_settings(db, schemas.UserSettingsCreate())
         
-    db_activity = models.BreakActivity(**activity.dict(), settings_id=settings.id)
+    db_activity = models.BreakActivity(**activity.model_dump(), settings_id=settings.id)
     db.add(db_activity)
     db.commit()
     db.refresh(db_activity)
@@ -73,7 +73,7 @@ def create_break_activity(db: Session, activity: schemas.BreakActivityCreate):
 def update_break_activity(db: Session, activity_id: int, activity: schemas.BreakActivityCreate):
     db_activity = db.query(models.BreakActivity).filter(models.BreakActivity.id == activity_id).first()
     if db_activity:
-        for key, value in activity.dict().items():
+        for key, value in activity.model_dump().items():
             setattr(db_activity, key, value)
         db.commit()
         db.refresh(db_activity)
