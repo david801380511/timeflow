@@ -8,6 +8,28 @@ from backend.models.models import Assignment
 from backend.models.notification_models import create_default_notification_rules
 from datetime import datetime, timedelta
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from typing import List, Optional
+from datetime import datetime, timedelta
+
+from ..database import get_db
+from ..models.time_models import TimeMethod, UserMethodPreference, WorkSession, TimeMethodType
+from ..schemas.time_schemas import (
+    TimeMethod as TimeMethodSchema,
+    WorkSession as WorkSessionSchema,
+    WorkSessionCreate,
+    UserMethodPreference as UserMethodPreferenceSchema,
+    UserMethodPreferenceCreate,
+    UserMethodPreferenceUpdate,
+    TimeMethodRecommendation
+)
+from ..crud import time_crud
+from ..core.dependencies import get_current_user
+from ..models.user_models import User
+
+router = APIRouter(prefix="/api/time", tags=["time"])
+
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 

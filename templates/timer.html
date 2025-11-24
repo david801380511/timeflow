@@ -54,6 +54,90 @@
 
                         <!-- Right Column: Controls & Stats -->
                         <div class="space-y-8">
+                            <!-- Time Management Method Selector -->
+                            <div class="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <i class="fas fa-clock mr-2 text-indigo-500"></i>Time Management Method
+                                </label>
+                                <div class="relative">
+                                    <select id="time-method-select" class="w-full px-4 py-3 rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-base cursor-pointer appearance-none pr-10">
+                                        <option value="">Select a method...</option>
+                                        <option value="pomodoro">Pomodoro</option>
+                                        <option value="52-17">52-17</option>
+                                        <option value="flowtime">Flowtime</option>
+                                        <option value="ultradian">Ultradian Rhythms</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-chevron-down text-gray-400"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Method Details -->
+                                <div id="method-details" class="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hidden">
+                                    <h4 class="font-semibold text-gray-900 dark:text-white mb-2">Method Details</h4>
+                                    <p id="method-description" class="text-sm text-gray-600 dark:text-gray-300 mb-3"></p>
+                                    <div id="method-params" class="space-y-3">
+                                        <!-- Parameters will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Recommended Method -->
+                                <div id="recommended-method" class="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-100 dark:border-indigo-800 hidden">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 pt-0.5">
+                                            <i class="fas fa-star text-yellow-400"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h4 class="text-sm font-medium text-indigo-800 dark:text-indigo-200">Recommended for you</h4>
+                                            <p id="recommendation-reason" class="text-sm text-indigo-700 dark:text-indigo-300 mt-1"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Music Player -->
+                            <div class="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-base font-medium text-gray-900 dark:text-white flex items-center">
+                                        <i class="fas fa-music mr-2 text-indigo-500"></i>
+                                        Study Music
+                                    </h3>
+                                    <button id="toggle-music" class="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                        <i class="fas fa-cog"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Now Playing -->
+                                <div id="now-playing" class="flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg">
+                                    <div class="flex-shrink-0 w-12 h-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-music text-indigo-600 dark:text-indigo-400"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <h4 id="track-title" class="text-sm font-medium text-gray-900 dark:text-white truncate">No track selected</h4>
+                                        <p id="track-artist" class="text-xs text-gray-500 dark:text-gray-400 truncate">-</p>
+                                        </button>
+                                        <input type="range" id="volume" min="0" max="1" step="0.1" value="0.5" class="w-20">
+                                    </div>
+                                </div>
+                                
+                                <div id="radio-stations" class="space-y-2">
+                                    <div class="radio-station p-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" data-src="https://www.youtube.com/watch?v=jfKfPfyJRdk">
+                                        <div class="font-medium text-gray-900 dark:text-white">Lofi Girl</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">lofi hip hop radio - beats to relax/study to</div>
+                                    </div>
+                                    <div class="radio-station p-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" data-src="https://www.youtube.com/watch?v=rUxyKA_qgr8">
+                                        <div class="font-medium text-gray-900 dark:text-white">Chillhop Radio</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">jazzy & lofi hip hop beats</div>
+                                    </div>
+                                    <div class="radio-station p-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" data-src="https://www.youtube.com/watch?v=DWcJFNfaw9c">
+                                        <div class="font-medium text-gray-900 dark:text-white">Coffee Shop Radio</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400">cozy coffee shop ambience</div>
+                                    </div>
+                                </div>
+                                
+                                <audio id="audio-player" class="hidden"></audio>
+                            </div>
+
                             <!-- Assignment Selection -->
                             <div class="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -135,6 +219,52 @@
     </div>
 {% endblock %}
 
+<!-- YouTube iframe container (hidden) -->
+<div id="youtube-player-container" class="fixed bottom-4 right-4 w-64 h-48 bg-black rounded-lg overflow-hidden shadow-xl z-50 hidden">
+    <div class="relative w-full h-full">
+        <button id="close-youtube" class="absolute top-2 right-2 z-10 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
+            <i class="fas fa-times"></i>
+        </button>
+        <iframe id="youtube-player" 
+                width="100%" 
+                height="100%" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+        </iframe>
+    </div>
+</div>
+
 {% block extra_js %}
-<script src="{{ url_for('static', path='/js/timer.js') }}"></script>
+<script src="{{ url_for('static', path='/js/timer-new.js') }}"></script>
+<script src="{{ url_for('static', path='/js/time-methods.js') }}"></script>
+<script>
+    // Initialize the timer with default values that will be overridden by time-methods.js
+    document.addEventListener('DOMContentLoaded', function() {
+        // These will be updated when a method is selected
+        window.workDuration = 25 * 60; // Default to 25 minutes
+        window.shortBreakDuration = 5 * 60; // 5 minutes
+        window.longBreakDuration = 15 * 60; // 15 minutes
+        window.totalIntervals = 4; // Number of work intervals before long break
+        
+        // Initialize the timer
+        if (typeof initTimer === 'function') {
+            initTimer();
+        }
+        
+        // Initialize the time methods
+        if (typeof init === 'function') {
+            init();
+        }
+        
+        // Trigger the initial method selection
+        const timeMethodSelect = document.getElementById('time-method-select');
+        if (timeMethodSelect) {
+            // Set default to Pomodoro
+            timeMethodSelect.value = 'pomodoro';
+            // Trigger change event to update the UI
+            timeMethodSelect.dispatchEvent(new Event('change'));
+        }
+    });
+</script>
 {% endblock %}
