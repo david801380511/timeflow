@@ -3,19 +3,19 @@ const timeMethods = {
     'pomodoro': {
         name: 'Pomodoro',
         description: 'Work for 25 minutes, then take a 5-minute break. After 4 cycles, take a longer 15-30 minute break.',
-        workDuration: 25 * 60, // 25 minutes in seconds
-        shortBreak: 5 * 60,    // 5 minutes
-        longBreak: 15 * 60,    // 15 minutes
-        intervals: 4,          // Number of work intervals before long break
+        workDuration: 25, // in minutes
+        shortBreak: 5,    // in minutes
+        longBreak: 15,    // in minutes
+        intervals: 4,     // Number of work intervals before long break
         color: 'indigo',
         icon: 'fa-clock'
     },
     '52-17': {
         name: '52-17',
         description: 'Work for 52 minutes, then take a 17-minute break. Based on productivity research showing optimal work/rest cycles.',
-        workDuration: 52 * 60,
-        shortBreak: 17 * 60,
-        longBreak: 30 * 60,
+        workDuration: 52,  // in minutes
+        shortBreak: 17,    // in minutes
+        longBreak: 30,     // in minutes
         intervals: 2,
         color: 'blue',
         icon: 'fa-hourglass-half'
@@ -23,9 +23,9 @@ const timeMethods = {
     'flowtime': {
         name: 'Flowtime',
         description: 'Work in flexible time blocks based on your natural flow state. Take breaks when you feel your focus waning.',
-        workDuration: 45 * 60,
-        shortBreak: 15 * 60,
-        longBreak: 30 * 60,
+        workDuration: 45,  // in minutes
+        shortBreak: 15,    // in minutes
+        longBreak: 30,     // in minutes
         intervals: 3,
         color: 'purple',
         icon: 'fa-infinity'
@@ -33,9 +33,9 @@ const timeMethods = {
     'ultradian': {
         name: 'Ultradian Rhythms',
         description: 'Work in 90-minute cycles followed by 20-30 minute breaks, aligned with your body\'s natural energy cycles.',
-        workDuration: 90 * 60,
-        shortBreak: 20 * 60,
-        longBreak: 30 * 60,
+        workDuration: 90,  // in minutes
+        shortBreak: 20,    // in minutes
+        longBreak: 30,     // in minutes
         intervals: 2,
         color: 'green',
         icon: 'fa-wave-square'
@@ -51,74 +51,118 @@ const recommendedMethod = document.getElementById('recommended-method');
 const recommendationReason = document.getElementById('recommendation-reason');
 
 // Music Player State
-let currentTrack = null;
+let currentStation = null;
 let isPlaying = false;
-const tracks = [
+const stations = [
     {
-        id: 'lofi-study',
-        title: 'Lofi Study',
-        artist: 'Chill Beats',
-        duration: '∞',
-        cover: '/static/images/lofi-cover.jpg'
+        id: 'lofi-girl',
+        title: 'Lofi Girl',
+        description: 'lofi hip hop radio - beats to relax/study to',
+        videoId: 'jfKfPfyJRdk',
+        cover: 'https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg'
     },
     {
-        id: 'jazz-relax',
-        title: 'Jazz Relaxation',
-        artist: 'Smooth Jazz',
-        duration: '∞',
-        cover: '/static/images/jazz-cover.jpg'
+        id: 'chillhop',
+        title: 'Chillhop Radio',
+        description: 'jazzy & lofi hip hop beats',
+        videoId: 'rUxyKA_qgr8',
+        cover: 'https://i.ytimg.com/vi/rUxyKA_qgr8/hqdefault.jpg'
     },
     {
-        id: 'piano-study',
-        title: 'Piano Study',
-        artist: 'Classical Piano',
-        duration: '∞',
-        cover: '/static/images/piano-cover.jpg'
+        id: 'coffee-shop',
+        title: 'Coffee Shop Radio',
+        description: 'cozy coffee shop ambience',
+        videoId: 'DWcJFNfaw9c',
+        cover: 'https://i.ytimg.com/vi/DWcJFNfaw9c/hqdefault.jpg'
     }
 ];
 
-// Play a track
-function playTrack(trackId) {
-    const track = tracks.find(t => t.id === trackId);
-    if (!track) return;
+// Play a station
+function playStation(stationId) {
+    const station = stations.find(s => s.id === stationId);
+    if (!station) {
+        console.error('Station not found:', stationId);
+        return;
+    }
     
-    currentTrack = track;
+    console.log('Playing station:', station);
+    currentStation = station;
     isPlaying = true;
     
     // Update UI
-    updateNowPlaying(track);
+    updateNowPlaying(station);
     updatePlayPauseButton();
     
-    // In a real implementation, you would play the actual audio here
-    console.log('Now playing:', track.title);
+    // Get or create the YouTube iframe container
+    const youtubeContainer = document.getElementById('youtube-player-container');
+    if (!youtubeContainer) {
+        console.error('YouTube container not found');
+        return;
+    }
+    
+    // Create or update the YouTube iframe
+    let iframe = youtubeContainer.querySelector('iframe');
+    
+    if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.width = '100%';
+        iframe.height = '100%';
+        iframe.frameBorder = '0';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+        iframe.allowFullscreen = true;
+        document.getElementById('youtube-iframe').appendChild(iframe);
+    }
+    
+    // Set the source with autoplay and enable jsapi
+    const videoId = station.videoId || 'jfKfPfyJRdk'; // Default to Lofi Girl if no videoId
+    iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&mute=0`;
+    youtubeContainer.classList.remove('hidden');
+    
+    // Store the iframe in a global variable for control
+    window.currentYouTubePlayer = iframe;
+    
+    console.log('Now playing:', station.title);
 }
 
-// Toggle play/pause
-function togglePlayPause() {
+// Toggle play/pause for YouTube player
+function toggleYouTubePlayback() {
+    if (!currentStation) return;
+    
     isPlaying = !isPlaying;
     updatePlayPauseButton();
     
-    if (isPlaying) {
-        console.log('Resumed playback');
-    } else {
-        console.log('Paused playback');
+    const iframe = document.getElementById('youtube-iframe');
+    if (iframe && iframe.contentWindow) {
+        if (isPlaying) {
+            iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        } else {
+            iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        }
     }
 }
 
 // Update the now playing display
-function updateNowPlaying(track) {
+function updateNowPlaying(station) {
     const nowPlaying = document.getElementById('now-playing');
-    if (!nowPlaying) return;
+    const trackTitle = document.getElementById('track-title');
+    const trackArtist = document.getElementById('track-artist');
     
+    if (!nowPlaying || !trackTitle || !trackArtist) return;
+    
+    // Update the mini player
     nowPlaying.innerHTML = `
         <div class="flex items-center space-x-3">
-            <img src="${track.cover}" alt="${track.title}" class="w-12 h-12 rounded">
-            <div>
-                <div class="font-medium text-gray-900 dark:text-white">${track.title}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">${track.artist}</div>
+            <img src="${station.cover}" alt="${station.title}" class="w-12 h-12 rounded">
+            <div class="min-w-0">
+                <div class="font-medium text-gray-900 dark:text-white truncate">${station.title}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400 truncate">${station.description}</div>
             </div>
         </div>
     `;
+    
+    // Also update the track info in the main player
+    trackTitle.textContent = station.title;
+    trackArtist.textContent = station.description;
 }
 
 // Update play/pause button
@@ -127,12 +171,16 @@ function updatePlayPauseButton() {
     if (!playPauseBtn) return;
     
     const icon = playPauseBtn.querySelector('i');
+    if (!icon) return;
+    
     if (isPlaying) {
         icon.classList.remove('fa-play');
         icon.classList.add('fa-pause');
+        playPauseBtn.setAttribute('title', 'Pause');
     } else {
         icon.classList.remove('fa-pause');
         icon.classList.add('fa-play');
+        playPauseBtn.setAttribute('title', 'Play');
     }
 }
 
@@ -140,104 +188,287 @@ function updatePlayPauseButton() {
 function initMusicPlayer() {
     console.log('Initializing music player...');
     
-    // Only initialize if the player elements exist
-    const closeBtn = document.getElementById('close-youtube');
-    const radioStations = document.querySelectorAll('.radio-station');
+    // Set up play/pause button
+    if (playPauseBtn) {
+        // Remove any existing event listeners to prevent duplicates
+        const newPlayPauseBtn = playPauseBtn.cloneNode(true);
+        playPauseBtn.parentNode.replaceChild(newPlayPauseBtn, playPauseBtn);
+        
+        // Add click handler to the new button
+        newPlayPauseBtn.addEventListener('click', togglePlayPause);
+        
+        // Update the reference
+        window.playPauseBtn = newPlayPauseBtn;
+        
+        console.log('Play/pause button event listener added');
+        
+        // Set initial play/pause button state
+        updatePlayPauseButton();
+    } else {
+        console.warn('Play/pause button not found');
+    }
     
-    // Load YouTube API first
-    console.log('Loading YouTube API...');
-    loadYouTubeIframeAPI();
-    
-    // Set up close button
-    if (closeBtn) {
-        closeBtn.addEventListener('click', closeYouTubePlayer);
-        console.log('Close button event listener added');
+    // Set up volume control
+    const volumeControl = document.getElementById('volume');
+    if (volumeControl) {
+        volumeControl.addEventListener('input', (e) => {
+            const volume = e.target.value;
+            const iframe = document.getElementById('youtube-iframe');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage(`{"event":"command","func":"setVolume","args":[${volume * 100}]}`, '*');
+            }
+        });
+        console.log('Volume control event listener added');
     }
     
     // Set up radio stations
+    const radioStations = document.querySelectorAll('.radio-station');
     if (radioStations.length > 0) {
         console.log('Found', radioStations.length, 'radio stations');
         
+        // Add click handlers to each station
         radioStations.forEach((station) => {
             station.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                const src = station.getAttribute('data-src');
-                console.log('Station clicked:', src);
+                // Get the station ID from data-id attribute
+                const stationId = station.getAttribute('data-id');
+                console.log('Station clicked:', stationId);
                 
-                if (src) {
+                if (stationId) {
                     // Update active station UI
                     radioStations.forEach(s => s.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20'));
                     station.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
                     
                     // Play the station
-                    playStation(src);
+                    playStation(stationId);
                 }
             });
         });
         
-        // Load last played station
-        const lastStation = localStorage.getItem('lastPlayedStation');
-        if (lastStation) {
-            console.log('Loading last played station:', lastStation);
-            
-            // Small delay to ensure UI is ready
-            setTimeout(() => {
-                const station = Array.from(radioStations).find(s => 
-                    s.getAttribute('data-src') === lastStation
-                );
-                
-                if (station) {
-                    console.log('Found last played station in DOM, clicking it');
-                    station.click();
-                }
-            }, 1500);
-        } else if (radioStations.length > 0) {
-            // Auto-play the first station if none was previously selected
-            console.log('No last played station, auto-playing first station');
-            setTimeout(() => {
+        // Auto-play the first station after a short delay
+        setTimeout(() => {
+            if (radioStations.length > 0) {
                 radioStations[0].click();
-            }, 1500);
-        }
+            }
+        }, 1000);
     } else {
         console.warn('No radio stations found in the DOM');
     }
+    
+    // Set up close button for YouTube player
+    const closeBtn = document.getElementById('close-youtube');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            const youtubeContainer = document.getElementById('youtube-player-container');
+            if (youtubeContainer) {
+                youtubeContainer.classList.add('hidden');
+                
+                // Pause the video when closing
+                const iframe = document.getElementById('youtube-iframe');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
+                
+                isPlaying = false;
+                updatePlayPauseButton();
+            }
+        });
+    }
 }
-
-// Music Player Elements
 const audioPlayer = document.getElementById('audio-player');
 const volumeControl = document.getElementById('volume');
 const muteBtn = document.getElementById('mute-btn');
+const playPauseBtn = document.getElementById('start-pause'); // Updated to match HTML ID
+const toggleSettingsBtn = document.getElementById('toggle-music-settings');
+const musicSettings = document.getElementById('music-settings');
+
+// Toggle settings panel
+if (toggleSettingsBtn && musicSettings) {
+    toggleSettingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        musicSettings.classList.toggle('hidden');
+    });
+
+    // Close settings when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!musicSettings.contains(e.target) && e.target !== toggleSettingsBtn) {
+            musicSettings.classList.add('hidden');
+        }
+    });
+}
+
+// Initialize volume from localStorage
+let currentVolume = parseFloat(localStorage.getItem('volume') || '0.5');
+let isMuted = localStorage.getItem('isMuted') === 'true';
+
+// Initialize audio context and set up volume control
+async function initializeAudio() {
+    try {
+        await initAudioContext();
+        if (volumeControl) {
+            volumeControl.value = currentVolume;
+            updateVolume({ target: { value: currentVolume } });
+        }
+    } catch (error) {
+        console.warn('Error initializing audio:', error);
+    }
+}
+
+// Start audio initialization when user interacts with the page
+const startAudio = () => {
+    document.removeEventListener('click', startAudio);
+    document.removeEventListener('keydown', startAudio);
+    initializeAudio();
+};
+
+document.addEventListener('click', startAudio);
+document.addEventListener('keydown', startAudio);
+
+// Handle volume change
+function handleVolumeChange(e) {
+    try {
+        const volume = parseFloat(e.target.value);
+        const iframe = document.getElementById('youtube-iframe');
+        
+        // Update YouTube iframe volume if it exists
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(`{"event":"command","func":"setVolume","args":[${volume * 100}]}`, '*');
+        }
+        
+        // Update mute state based on volume
+        isMuted = volume <= 0;
+        updateMuteButton();
+        
+        // Save volume preference
+        localStorage.setItem('volume', volume);
+    } catch (error) {
+        console.warn('Error updating volume:', error);
+    }
+}
 const radioStations = document.querySelectorAll('.radio-station');
 
 // Music player state
-let isMuted = false;
-let currentStation = null;
-const stations = [
-    {
-        id: 'lofi-girl',
-        name: 'Lofi Girl',
-        description: 'lofi hip hop radio - beats to relax/study to',
-        url: 'https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&mute=0&controls=0&showinfo=0&rel=0&modestbranding=1',
-        color: 'indigo'
-    },
-    {
-        id: 'chillhop',
-        name: 'Chillhop Radio',
-        description: 'jazzy & lofi hip hop beats',
-        url: 'https://www.youtube.com/embed/5yx6BWlEVcY?autoplay=1&mute=0&controls=0&showinfo=0&rel=0&modestbranding=1',
-        color: 'green'
-    },
-    {
-        id: 'coffee-shop',
-        name: 'Coffee Shop Radio',
-        description: 'cozy coffee shop ambience',
-        url: 'https://www.youtube.com/embed/DWcJFNfaw9c?autoplay=1&mute=0&controls=0&showinfo=0&rel=0&modestbranding=1',
-        color: 'yellow'
-    }
-];
 let pauseTime = 0;
+let audioContext;
+let audioSource = null; // Add audioSource to global state
+
+// Initialize audio context
+async function initAudioContext() {
+    try {
+        // Check if we already have an audio context
+        if (audioContext) {
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            return audioContext;
+        }
+        
+        // Create cross-browser audio context
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) {
+            console.warn('Web Audio API is not supported in this browser');
+            return null;
+        }
+        
+        audioContext = new AudioContext();
+        
+        // Handle iOS autoplay policy
+        if (audioContext.state === 'suspended') {
+            const resumeAudio = async () => {
+                try {
+                    await audioContext.resume();
+                    console.log('Audio context resumed successfully');
+                } catch (error) {
+                    console.warn('Error resuming audio context:', error);
+                }
+            };
+            
+            // Set up user interaction to resume audio context
+            const interactionEvents = ['click', 'touchstart', 'keydown'];
+            const onUserInteraction = async () => {
+                for (const event of interactionEvents) {
+                    document.removeEventListener(event, onUserInteraction);
+                }
+                await resumeAudio();
+            };
+            
+            for (const event of interactionEvents) {
+                document.addEventListener(event, onUserInteraction, { once: true });
+            }
+        }
+        
+        console.log('Audio context initialized');
+        return audioContext;
+    } catch (error) {
+        console.error('Error initializing audio context:', error);
+        return null;
+    }
+}
+
+// Update volume
+function updateVolume(e) {
+    try {
+        const volume = e && e.target ? parseFloat(e.target.value) : parseFloat(volumeControl?.value || 0.5);
+        const iframe = document.getElementById('youtube-iframe');
+        
+        // Update YouTube iframe volume if it exists
+        if (iframe && iframe.contentWindow) {
+            const volumeValue = isMuted ? 0 : volume;
+            iframe.contentWindow.postMessage(`{"event":"command","func":"setVolume","args":[${volumeValue * 100}]}`, '*');
+        }
+        
+        // Update Web Audio API volume if available
+        if (audioContext) {
+            const gainNode = audioContext.createGain();
+            gainNode.gain.value = isMuted ? 0 : volume;
+            // Connect the gain node to your audio graph here if needed
+        }
+        
+        // Update volume control value
+        if (volumeControl) {
+            volumeControl.value = volume;
+        }
+        
+        // Update mute state based on volume
+        isMuted = volume <= 0;
+        updateMuteButton();
+        
+        // Save volume preference
+        localStorage.setItem('volume', volume);
+        
+    } catch (error) {
+        console.warn('Error updating volume:', error);
+    }
+}
+
+// Toggle mute state
+function toggleMute() {
+    isMuted = !isMuted;
+    
+    // Save mute state
+    localStorage.setItem('isMuted', isMuted);
+    
+    // Update volume with current mute state
+    updateVolume({ target: { value: volumeControl?.value || 0.5 } });
+}
+
+// Update mute button appearance
+function updateMuteButton() {
+    if (!muteBtn) return;
+    
+    const icon = muteBtn.querySelector('i');
+    if (!icon) return;
+    
+    if (isMuted || (volumeControl && parseFloat(volumeControl.value) <= 0)) {
+        icon.className = 'fas fa-volume-mute';
+        muteBtn.setAttribute('title', 'Unmute');
+    } else {
+        icon.className = 'fas fa-volume-up';
+        muteBtn.setAttribute('title', 'Mute');
+    }
+}
 let animationFrameId;
 
 // Sample playlist (in a real app, this would come from the backend)
@@ -251,43 +482,30 @@ let playlist = [
 function init() {
     console.log('Initializing application...');
     
-    // Set up event listeners first
-    setupEventListeners();
-    
-    // Load user preferences
-    loadUserPreferences();
-    
-    // Initialize the music player
-    setTimeout(() => {
-        initMusicPlayer();
-    }, 500);
-    
-    // Initialize the timer if the function exists
-    if (typeof window.initTimer === 'function') {
-        console.log('Initializing timer...');
-        window.initTimer();
-    } else {
-        console.warn('initTimer function not found on window object');
+    try {
+        // Initialize audio context
+        initAudioContext();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+        // Load user preferences
+        loadUserPreferences();
+        
+        // Initialize timer display
+        updateTimerDisplay();
+        
+        // Initialize timer with default method if none selected
+        if (timeMethodSelect && timeMethodSelect.value) {
+            handleMethodChange({ target: timeMethodSelect });
+        } else if (timeMethodSelect && timeMethodSelect.options.length > 0) {
+            timeMethodSelect.value = timeMethodSelect.options[0].value;
+            handleMethodChange({ target: timeMethodSelect });
+        }
+    } catch (error) {
+        console.error('Error initializing application:', error);
     }
-    
-    // If we have a selected method, update the timer with its settings
-    const selectedMethod = localStorage.getItem('selectedMethod') || 'pomodoro';
-    console.log('Loading selected method:', selectedMethod);
-    
-    // Update the select element to show the current method
-    if (timeMethodSelect) {
-        timeMethodSelect.value = selectedMethod;
-        // Trigger change event to update the UI
-        const event = new Event('change');
-        timeMethodSelect.dispatchEvent(event);
-    }
-    
-    // Update timer with the selected method
-    updateTimerWithMethod(selectedMethod);
-    
-    console.log('Application initialized');
-    return true;
-} // Indicate successful initialization
+}
 
 // Set up event listeners
 function setupEventListeners() {
@@ -296,27 +514,84 @@ function setupEventListeners() {
         timeMethodSelect.addEventListener('change', handleMethodChange);
     }
     
+    // Start/Pause button for timer
+    const startPauseBtn = document.getElementById('start-pause');
+    if (startPauseBtn) {
+        startPauseBtn.addEventListener('click', () => {
+            if (window.timerInterval) {
+                // Pause timer
+                clearInterval(window.timerInterval);
+                window.timerInterval = null;
+                startPauseBtn.innerHTML = '<i class="fas fa-play"></i><span>Start</span>';
+            } else {
+                // Start timer
+                window.timerInterval = setInterval(() => {
+                    if (window.updateTimerDisplay) {
+                        window.updateTimerDisplay();
+                    }
+                }, 1000);
+                startPauseBtn.innerHTML = '<i class="fas fa-pause"></i><span>Pause</span>';
+            }
+        });
+    }
+    
+    // Reset button for timer
+    const resetBtn = document.getElementById('reset-timer');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if (window.timerInterval) {
+                clearInterval(window.timerInterval);
+                window.timerInterval = null;
+            }
+            if (startPauseBtn) {
+                startPauseBtn.innerHTML = '<i class="fas fa-play"></i><span>Start</span>';
+            }
+            // Reset timer display to current method's work duration
+            if (timeMethodSelect && timeMethodSelect.value) {
+                handleMethodChange({ target: timeMethodSelect });
+            }
+        });
+    }
+    
     // Music player controls
     if (volumeControl) {
-        volumeControl.addEventListener('input', handleVolumeChange);
+        volumeControl.addEventListener('input', updateVolume);
     }
     
     if (muteBtn) {
         muteBtn.addEventListener('click', toggleMute);
     }
     
+    // Close YouTube player
+    const closeYoutubeBtn = document.getElementById('close-youtube');
+    if (closeYoutubeBtn) {
+        closeYoutubeBtn.addEventListener('click', () => {
+            const youtubeContainer = document.getElementById('youtube-player-container');
+            if (youtubeContainer) {
+                youtubeContainer.classList.add('hidden');
+                
+                // Pause the video when closing
+                const iframe = document.getElementById('youtube-iframe');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
+                
+                isPlaying = false;
+                updatePlayPauseButton();
+            }
+        });
+    }
+    
     // Set up radio station click handlers
+    const radioStations = document.querySelectorAll('.radio-station');
     radioStations.forEach(station => {
         station.addEventListener('click', () => {
-            const stationId = station.getAttribute('data-station');
-            playStation(stationId);
+            const stationId = station.getAttribute('data-id');
+            if (stationId) {
+                playStation(stationId);
+            }
         });
     });
-    
-    // Set initial volume
-    if (audioPlayer) {
-        audioPlayer.volume = volumeControl ? volumeControl.value : 0.5;
-    }
 }
 
 // Handle method selection change
@@ -331,6 +606,12 @@ function handleMethodChange(event) {
     }
     
     console.log('Method changed to:', methodId, method);
+    
+    // Save the selected method
+    saveUserPreference('selectedMethod', methodId);
+    
+    // Update the timer with the new method
+    updateTimerWithMethod(methodId);
     
     // Update method details
     if (methodDescription) {
@@ -435,62 +716,44 @@ function updateTimerWithMethod(methodId) {
         return;
     }
     
-    // Update the global timer variables
-    window.workDuration = method.workDuration;
-    window.shortBreakDuration = method.shortBreak;
-    window.longBreakDuration = method.longBreak;
-    window.totalIntervals = method.intervals;
+    // Store current method globally
+    window.currentMethod = method;
     
-    console.log('Timer settings updated:', {
-        workDuration: window.workDuration,
-        shortBreak: window.shortBreakDuration,
-        longBreak: window.longBreakDuration,
-        intervals: window.totalIntervals
-    });
+    // Convert minutes to seconds for the timer
+    const timerSettings = {
+        workDuration: method.workDuration * 60,    // Convert minutes to seconds
+        shortBreak: method.shortBreak * 60,        // Convert minutes to seconds
+        longBreak: method.longBreak * 60,          // Convert minutes to seconds
+        intervals: method.intervals
+    };
     
-    // Update the timer display if the timer is initialized
+    console.log('Updating timer with settings:', timerSettings);
+    
+    // Update the timer with new settings
+    if (typeof window.updateTimerSettings === 'function') {
+        window.updateTimerSettings(timerSettings);
+    } 
+    
+    // Also try to update through the timer instance directly
     if (window.timer) {
-        console.log('Updating timer instance with new settings');
-        const wasRunning = window.timer.isRunning;
+        // If we have direct access to the timer, update its properties
+        window.timer.workTime = timerSettings.workDuration;
+        window.timer.breakTime = timerSettings.shortBreak;
+        window.timer.longBreakTime = timerSettings.longBreak;
+        window.timer.intervals = timerSettings.intervals;
         
-        // Store current state
-        const currentTime = window.timer.timeLeft;
-        const currentPhase = window.timer.isBreak ? 'break' : 'work';
-        
-        // Update timer settings
-        window.timer.workTime = method.workDuration;
-        window.timer.breakTime = method.shortBreak;
-        window.timer.longBreakTime = method.longBreak;
-        window.timer.intervals = method.intervals;
-        
-        // Reset the timer with new settings
-        window.timer.resetTimer();
-        
-        // If timer was running, keep it running with new settings
-        if (wasRunning) {
-            window.timer.startTimer();
+        // Reset the timer with new settings if not running
+        if (!window.timer.isRunning) {
+            window.timer.resetTimer();
         }
-        
-        console.log('Timer updated successfully');
-    } else if (typeof window.initTimer === 'function') {
-        console.log('Initializing timer with new settings');
-        window.initTimer();
-        
-        // Update the timer display with the new method's work duration
-        const timerDisplay = document.getElementById('timer');
+    }
+    
+    // If timer is not running, update the display
+    if (window.isRunning !== true) {
+        const timerDisplay = document.getElementById('time-display') || document.getElementById('timer');
         if (timerDisplay) {
-            const minutes = Math.floor(method.workDuration / 60);
-            const seconds = method.workDuration % 60;
-            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-    } else {
-        console.warn('Timer functions not available yet');
-        
-        // Fallback: Update the display manually
-        const timerDisplay = document.getElementById('timer');
-        if (timerDisplay) {
-            const minutes = Math.floor(method.workDuration / 60);
-            const seconds = method.workDuration % 60;
+            const minutes = Math.floor(timerSettings.workDuration / 60);
+            const seconds = 0;
             timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     }
@@ -519,34 +782,45 @@ function updateTimerWithMethod(methodId) {
 
 // Load user preferences
 function loadUserPreferences() {
-    // Try to load from localStorage
-    const savedMethod = localStorage.getItem('preferredTimeMethod') || 'pomodoro';
-    const savedMethods = JSON.parse(localStorage.getItem('timeMethods') || '{}');
-    
-    // Merge saved methods with defaults
-    Object.entries(savedMethods).forEach(([key, value]) => {
-        if (timeMethods[key]) {
-            timeMethods[key] = { ...timeMethods[key], ...value };
+    try {
+        // Load volume
+        const savedVolume = localStorage.getItem('volume');
+        if (savedVolume !== null && volumeControl) {
+            const volume = Math.min(1, Math.max(0, parseFloat(savedVolume) || 0.5));
+            volumeControl.value = volume;
+            // The volume will be applied when the player initializes
         }
-    });
-    
-    // Set the selected method
-    timeMethodSelect.value = savedMethod;
-    if (savedMethod) {
-        timeMethodSelect.dispatchEvent(new Event('change'));
+        
+        // Load mute state
+        const savedMute = localStorage.getItem('isMuted');
+        if (savedMute === 'true') {
+            isMuted = true;
+            updateMuteButton();
+        }
+        
+        // Load time method preferences
+        const savedMethod = localStorage.getItem('preferredTimeMethod') || 'pomodoro';
+        const savedMethods = JSON.parse(localStorage.getItem('timeMethods') || '{}');
+        
+        // Merge saved methods with defaults
+        Object.entries(savedMethods).forEach(([key, value]) => {
+            if (timeMethods[key]) {
+                timeMethods[key] = { ...timeMethods[key], ...value };
+            }
+        });
+        
+        // Set the selected method
+        if (timeMethodSelect) {
+            timeMethodSelect.value = savedMethod;
+            if (savedMethod) {
+                timeMethodSelect.dispatchEvent(new Event('change'));
+            }
+        }
+        
+        console.log('User preferences loaded');
+    } catch (error) {
+        console.warn('Error loading user preferences:', error);
     }
-    
-    // Load volume preference
-    const savedVolume = localStorage.getItem('volume');
-    if (savedVolume !== null) {
-        volumeControl.value = savedVolume;
-        updateVolume();
-    }
-    
-    // Get recommended method (in a real app, this would come from the backend)
-    setTimeout(() => {
-        recommendMethod();
-    }, 1000);
 }
 
 // Save user preference
@@ -589,12 +863,27 @@ function recommendMethod() {
     }
 }
 
-// Music Player Functions
+// Unified play/pause function
 function togglePlayPause() {
-    if (isPlaying) {
-        pauseAudio();
+    if (!playPauseBtn) return;
+    
+    if (currentStation) {
+        // Handle YouTube playback
+        toggleYouTubePlayback();
     } else {
-        playAudio();
+        // Handle local audio playback (if implemented)
+        if (isPlaying) {
+            pauseAudio();
+        } else {
+            playAudio();
+        }
+    }
+    
+    // Save play state to localStorage
+    if (isPlaying) {
+        localStorage.setItem('isPlaying', 'true');
+    } else {
+        localStorage.removeItem('isPlaying');
     }
 }
 
@@ -697,16 +986,45 @@ function playPreviousTrack() {
     }
 }
 
-function updateVolume() {
-    const volume = volumeControl.value / 100;
-    if (audioContext) {
-        const gainNode = audioContext.createGain();
-        gainNode.gain.value = volume;
+function updateVolume(e) {
+    try {
+        const volume = e && e.target ? parseFloat(e.target.value) : parseFloat(volumeControl?.value || 0.5);
         
-        if (audioSource) {
-            audioSource.disconnect();
-            audioSource.connect(gainNode).connect(audioContext.destination);
+        // Ensure audio context is initialized
+        if (!audioContext || audioContext.state === 'closed') {
+            initAudioContext();
         }
+        
+        // Update YouTube iframe volume if it exists
+        const iframe = document.getElementById('youtube-iframe');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(`{"event":"command","func":"setVolume","args":[${volume * 100}]}`, '*');
+        }
+        
+        // Update audio context volume if available
+        if (audioContext) {
+            try {
+                const gainNode = audioContext.createGain();
+                gainNode.gain.value = volume;
+                
+                // Only try to update connections if we have a valid source
+                if (audioSource && audioContext.state === 'running') {
+                    audioSource.disconnect();
+                    audioSource.connect(gainNode).connect(audioContext.destination);
+                }
+            } catch (error) {
+                console.warn('Error updating audio context:', error);
+            }
+        }
+        
+        // Update mute state based on volume
+        isMuted = volume <= 0;
+        updateMuteButton();
+        
+        // Save volume preference
+        localStorage.setItem('volume', volume);
+    } catch (error) {
+        console.warn('Error updating volume:', error);
     }
     
     // Save volume preference
@@ -732,14 +1050,19 @@ function updateProgressBar() {
 }
 
 function updatePlayPauseButton() {
+    if (!playPauseBtn) return; // Skip if button doesn't exist
+    
     const icon = playPauseBtn.querySelector('i');
     if (isPlaying) {
-        icon.classList.remove('fa-play');
-        icon.classList.add('fa-pause');
+        icon?.classList.remove('fa-play');
+        icon?.classList.add('fa-pause');
     } else {
-        icon.classList.remove('fa-pause');
-        icon.classList.add('fa-play');
+        icon?.classList.remove('fa-pause');
+        icon?.classList.add('fa-play');
     }
+    
+    // Update button title for accessibility
+    playPauseBtn.setAttribute('title', isPlaying ? 'Pause' : 'Play');
 }
 
 function togglePlaylist() {

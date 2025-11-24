@@ -1,11 +1,61 @@
 // Timer functionality that works with time-methods.js
 let timer;
-let timeLeft = 25 * 60; // Default to 25 minutes
+let timeLeft = 0;
 let isRunning = false;
 let isBreak = false;
 let isLongBreak = false;
 let currentInterval = 0;
-let totalIntervals = 4; // Will be updated by time-methods.js
+let totalIntervals = 4;
+let workDuration = 25 * 60; // Default to 25 minutes
+let shortBreakDuration = 5 * 60; // 5 minutes
+let longBreakDuration = 15 * 60; // 15 minutes
+
+// Update timer settings from method
+function updateTimerSettings(settings) {
+    console.log('Updating timer settings:', settings);
+    
+    if (settings) {
+        // Update durations (they should already be in seconds)
+        const newWorkDuration = settings.workDuration || workDuration;
+        const newShortBreak = settings.shortBreak || shortBreakDuration;
+        const newLongBreak = settings.longBreak || longBreakDuration;
+        
+        // Only update if values have changed
+        if (workDuration !== newWorkDuration || 
+            shortBreakDuration !== newShortBreak || 
+            longBreakDuration !== newLongBreak) {
+                
+            workDuration = newWorkDuration;
+            shortBreakDuration = newShortBreak;
+            longBreakDuration = newLongBreak;
+            totalIntervals = settings.intervals || totalIntervals;
+            
+            console.log('Timer durations updated:', {
+                workDuration,
+                shortBreakDuration,
+                longBreakDuration,
+                totalIntervals
+            });
+            
+            // If timer is not running, update the display
+            if (!isRunning) {
+                timeLeft = isBreak ? (isLongBreak ? longBreakDuration : shortBreakDuration) : workDuration;
+                updateTimerDisplay();
+                updateProgressRing();
+                
+                // Update the timer status
+                if (timerStatus) {
+                    timerStatus.textContent = isBreak ? (isLongBreak ? 'Long Break' : 'Short Break') : 'Ready';
+                }
+                
+                // Update the current phase
+                if (currentPhase) {
+                    currentPhase.textContent = isBreak ? (isLongBreak ? 'Long Break' : 'Short Break') : 'Ready';
+                }
+            }
+        }
+    }
+}
 
 // DOM Elements
 const timeDisplay = document.getElementById('time-display');
@@ -17,26 +67,49 @@ const currentPhase = document.getElementById('current-phase');
 const progressCircle = document.getElementById('progress-circle');
 
 // Initialize the timer
-function initTimer() {
-    // Set up event listeners
-    startPauseBtn.addEventListener('click', toggleTimer);
-    resetBtn.addEventListener('click', resetTimer);
+function initTimer(settings) {
+    // Update timer settings if provided
+    if (settings) {
+        updateTimerSettings(settings);
+    } else if (window.currentMethod) {
+        // Try to get settings from global currentMethod
+        updateTimerSettings({
+            workDuration: window.workDuration / 60,
+            shortBreak: window.shortBreakDuration / 60,
+            longBreak: window.longBreakDuration / 60,
+            intervals: window.totalIntervals
+        });
+    }
+    
+    // Set up event listeners if not already set
+    if (!startPauseBtn.hasListener) {
+        startPauseBtn.addEventListener('click', toggleTimer);
+        startPauseBtn.hasListener = true;
+    }
+    
+    if (!resetBtn.hasListener) {
+        resetBtn.addEventListener('click', resetTimer);
+        resetBtn.hasListener = true;
+    }
     
     // Initialize the display
+    timeLeft = workDuration; // Start with work duration
     updateTimerDisplay();
     updateIntervalCount();
     
     // Set up the progress ring
-    const radius = progressCircle.r.baseVal.value;
-    const circumference = radius * 2 * Math.PI;
-    progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
-    progressCircle.style.strokeDashoffset = circumference;
+    if (progressCircle) {
+        const radius = progressCircle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressCircle.style.strokeDashoffset = circumference;
+    }
     
     console.log('Timer initialized with:', {
-        workDuration: window.workDuration / 60,
-        shortBreak: window.shortBreakDuration / 60,
-        longBreak: window.longBreakDuration / 60,
-        intervals: window.totalIntervals
+        workDuration: workDuration / 60,
+        shortBreak: shortBreakDuration / 60,
+        longBreak: longBreakDuration / 60,
+        intervals: totalIntervals
     });
 }
 
@@ -68,34 +141,32 @@ function startTimer() {
             currentPhase.textContent = 'Running';
         }
         
-        // Clear any existing interval
-        if (timerInterval) {
-            clearInterval(timerInterval);
-        }
+        const currentDuration = isBreak ? (isLongBreak ? longBreakDuration : shortBreakDuration) : workDuration;
+        const startTime = Date.now() - ((currentDuration - timeLeft) * 1000);
         
-        // Calculate end time based on remaining time
-        endTime = Date.now() + (remainingTime > 0 ? remainingTime * 1000 : getCurrentDuration() * 1000);
-        
-        // Start the timer
-        timerInterval = setInterval(() => {
-            remainingTime = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
-            timeLeft = remainingTime;
+        function update() {
+            const currentTime = Date.now();
+            const elapsed = Math.floor((currentTime - startTime) / 1000);
+            timeLeft = Math.max(0, currentDuration - elapsed);
             
             updateTimerDisplay();
             updateProgressRing();
             
-            if (remainingTime <= 0) {
-                remainingTime = 0;
+            if (timeLeft <= 0) {
                 timerComplete();
+            } else {
+                timer = requestAnimationFrame(update);
             }
-        }, 100);
+        }
+        
+        timer = requestAnimationFrame(update);
     }
 }
 
 // Pause the timer
 function pauseTimer() {
     if (isRunning) {
-        clearInterval(timerInterval);
+        cancelAnimationFrame(timer);
         isRunning = false;
         startPauseBtn.innerHTML = '<i class="fas fa-play"></i><span>Resume</span>';
         startPauseBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
@@ -111,28 +182,50 @@ function pauseTimer() {
 
 // Reset the timer
 function resetTimer() {
-    // Stop the timer
-    clearInterval(timerInterval);
+    // Stop any running animation
+    if (timer) {
+        cancelAnimationFrame(timer);
+    }
+    
+    // Clear any intervals
+    if (window.timerInterval) {
+        clearInterval(window.timerInterval);
+        delete window.timerInterval;
+    }
+    
+    // Reset timer state
     isRunning = false;
     
-    // Reset all timer states
-    endTime = 0;
-    remainingTime = 0;
-    timeLeft = getCurrentDuration();
+    // Reset to work duration if not in break
+    if (!isBreak) {
+        timeLeft = workDuration;
+    } else {
+        timeLeft = isLongBreak ? longBreakDuration : shortBreakDuration;
+    }
     
     // Update the UI
     startPauseBtn.innerHTML = '<i class="fas fa-play"></i><span>Start</span>';
     startPauseBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
     startPauseBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
     
-    // Update the current phase
-    const currentPhase = document.getElementById('current-phase');
-    if (currentPhase) {
-        currentPhase.textContent = 'Ready';
-    }
-    
+    // Update the display
     updateTimerDisplay();
     updateProgressRing();
+    
+    // Update the timer status
+    if (timerStatus) {
+        timerStatus.textContent = isBreak ? (isLongBreak ? 'Long Break' : 'Short Break') : 'Ready';
+        timerStatus.className = `px-3 py-1 ${
+            isBreak 
+                ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' 
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
+        } rounded-full text-sm font-medium`;
+    }
+    
+    // Update the current phase
+    if (currentPhase) {
+        currentPhase.textContent = isBreak ? (isLongBreak ? 'Long Break' : 'Short Break') : 'Ready';
+    }
 }
 
 // Handle timer completion
@@ -166,9 +259,20 @@ document.addEventListener('timerComplete', () => {
 
 // Update the timer display
 function updateTimerDisplay() {
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
-    timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    // Ensure timeLeft is a number and not negative
+    const currentTime = Math.max(0, Math.floor(timeLeft));
+    // Always show minutes and seconds, even for durations over an hour
+    const minutes = Math.floor(currentTime / 60);
+    const seconds = currentTime % 60;
+    
+    // Format time as MM:SS
+    const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    if (timeDisplay) {
+        timeDisplay.textContent = timeString;
+    } else {
+        console.error('Time display element not found');
+    }
 }
 
 // Update the progress ring
@@ -257,4 +361,5 @@ window.initTimer = initTimer;
 window.startTimer = startTimer;
 window.pauseTimer = pauseTimer;
 window.resetTimer = resetTimer;
-window.toggleTimer = toggleTimer;
+window.updateTimerSettings = updateTimerSettings;
+window.updateTimerDisplay = updateTimerDisplay;

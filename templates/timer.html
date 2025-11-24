@@ -115,23 +115,70 @@
                                     <div class="min-w-0 flex-1">
                                         <h4 id="track-title" class="text-sm font-medium text-gray-900 dark:text-white truncate">No track selected</h4>
                                         <p id="track-artist" class="text-xs text-gray-500 dark:text-gray-400 truncate">-</p>
-                                        </button>
-                                        <input type="range" id="volume" min="0" max="1" step="0.1" value="0.5" class="w-20">
                                     </div>
+                                    <div class="flex items-center gap-2">
+                                        <button id="play-pause-btn" class="w-8 h-8 flex items-center justify-center text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                        <button id="toggle-music-settings" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                            <i class="fas fa-sliders-h"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Music Settings Panel -->
+                                <div id="music-settings" class="mt-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hidden">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Volume</label>
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-volume-down text-gray-500 dark:text-gray-400"></i>
+                                            <input type="range" id="volume" min="0" max="1" step="0.1" value="0.5" 
+                                                class="w-24 accent-indigo-600 dark:accent-indigo-400">
+                                            <i class="fas fa-volume-up text-gray-500 dark:text-gray-400"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Mute</label>
+                                        <button id="mute-btn" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                            <i class="fas fa-volume-mute"></i>
+                                        </button>
+                                    </div>
+                                </div>
                                 </div>
                                 
                                 <div id="radio-stations" class="space-y-2">
-                                    <div class="radio-station p-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" data-src="https://www.youtube.com/watch?v=jfKfPfyJRdk">
-                                        <div class="font-medium text-gray-900 dark:text-white">Lofi Girl</div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">lofi hip hop radio - beats to relax/study to</div>
+                                    <div class="radio-station p-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" data-id="lofi-girl">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                                <i class="fas fa-headphones text-indigo-600 dark:text-indigo-300"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium text-gray-900 dark:text-white">Lofi Girl</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">lofi hip hop radio - beats to relax/study to</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="radio-station p-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" data-src="https://www.youtube.com/watch?v=rUxyKA_qgr8">
-                                        <div class="font-medium text-gray-900 dark:text-white">Chillhop Radio</div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">jazzy & lofi hip hop beats</div>
+                                    <div class="radio-station p-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" data-id="chillhop">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                                                <i class="fas fa-music text-blue-600 dark:text-blue-300"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium text-gray-900 dark:text-white">Chillhop Radio</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">jazzy & lofi hip hop beats</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="radio-station p-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" data-src="https://www.youtube.com/watch?v=DWcJFNfaw9c">
-                                        <div class="font-medium text-gray-900 dark:text-white">Coffee Shop Radio</div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">cozy coffee shop ambience</div>
+                                    <div class="radio-station p-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" data-id="coffee-shop">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                                                <i class="fas fa-coffee text-amber-600 dark:text-amber-300"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium text-gray-900 dark:text-white">Coffee Shop Radio</div>
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">cozy coffee shop ambience</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -217,23 +264,16 @@
             </button>
         </div>
     </div>
-{% endblock %}
-
-<!-- YouTube iframe container (hidden) -->
-<div id="youtube-player-container" class="fixed bottom-4 right-4 w-64 h-48 bg-black rounded-lg overflow-hidden shadow-xl z-50 hidden">
-    <div class="relative w-full h-full">
-        <button id="close-youtube" class="absolute top-2 right-2 z-10 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
-            <i class="fas fa-times"></i>
-        </button>
-        <iframe id="youtube-player" 
-                width="100%" 
-                height="100%" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen>
-        </iframe>
+    <!-- YouTube iframe container (hidden) -->
+    <div id="youtube-player-container" class="fixed bottom-4 right-4 w-64 h-48 bg-black rounded-lg overflow-hidden shadow-xl z-50 hidden">
+        <div class="relative w-full h-full">
+            <button id="close-youtube" class="absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+            <div id="youtube-iframe"></div>
+        </div>
     </div>
-</div>
+{% endblock %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', path='/js/timer-new.js') }}"></script>
