@@ -62,18 +62,18 @@ const stations = [
         cover: 'https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg'
     },
     {
-        id: 'chillhop',
-        title: 'Chillhop Radio',
-        description: 'jazzy & lofi hip hop beats',
-        videoId: 'rUxyKA_qgr8',
-        cover: 'https://i.ytimg.com/vi/rUxyKA_qgr8/hqdefault.jpg'
+        id: 'cat-lofi',
+        title: 'Cat Lofi',
+        description: 'cute cat lofi beats to study/relax',
+        videoId: 'SMfHacO_o38',
+        cover: 'https://i.ytimg.com/vi/SMfHacO_o38/hqdefault.jpg'
     },
     {
-        id: 'coffee-shop',
-        title: 'Coffee Shop Radio',
-        description: 'cozy coffee shop ambience',
-        videoId: 'DWcJFNfaw9c',
-        cover: 'https://i.ytimg.com/vi/DWcJFNfaw9c/hqdefault.jpg'
+        id: 'peaceful-knight',
+        title: 'Peaceful Knight',
+        description: 'soothing solitude music for focus',
+        videoId: 'F02iMCEEQWs',
+        cover: 'https://i.ytimg.com/vi/F02iMCEEQWs/hqdefault.jpg'
     }
 ];
 
@@ -351,8 +351,9 @@ const radioStations = document.querySelectorAll('.radio-station');
 
 // Music player state
 let pauseTime = 0;
-let audioContext;
-let audioSource = null; // Add audioSource to global state
+let audioContext = null;
+let audioSource = null;
+let isAudioEnabled = false;
 
 // Initialize audio context
 async function initAudioContext() {
@@ -373,31 +374,42 @@ async function initAudioContext() {
         }
         
         audioContext = new AudioContext();
+        isAudioEnabled = audioContext.state === 'running';
         
-        // Handle iOS autoplay policy
-        if (audioContext.state === 'suspended') {
-            const resumeAudio = async () => {
+        // Handle autoplay policy
+        const handleUserInteraction = async () => {
+            if (audioContext && audioContext.state === 'suspended') {
                 try {
                     await audioContext.resume();
+                    isAudioEnabled = true;
                     console.log('Audio context resumed successfully');
                 } catch (error) {
                     console.warn('Error resuming audio context:', error);
                 }
-            };
-            
-            // Set up user interaction to resume audio context
-            const interactionEvents = ['click', 'touchstart', 'keydown'];
-            const onUserInteraction = async () => {
-                for (const event of interactionEvents) {
-                    document.removeEventListener(event, onUserInteraction);
-                }
-                await resumeAudio();
-            };
-            
-            for (const event of interactionEvents) {
-                document.addEventListener(event, onUserInteraction, { once: true });
             }
-        }
+        };
+        
+        // Set up user interaction to resume audio context
+        const interactionEvents = ['click', 'touchstart', 'keydown'];
+        
+        // Add event listeners for first user interaction
+        const onFirstInteraction = async () => {
+            await handleUserInteraction();
+            // Remove all first interaction listeners
+            interactionEvents.forEach(event => {
+                document.removeEventListener(event, onFirstInteraction);
+            });
+            
+            // Add persistent interaction handlers
+            interactionEvents.forEach(event => {
+                document.addEventListener(event, handleUserInteraction, { once: true });
+            });
+        };
+        
+        // Add first interaction listeners
+        interactionEvents.forEach(event => {
+            document.addEventListener(event, onFirstInteraction, { once: true });
+        });
         
         console.log('Audio context initialized');
         return audioContext;
