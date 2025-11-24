@@ -54,6 +54,116 @@
 
                         <!-- Right Column: Controls & Stats -->
                         <div class="space-y-8">
+                            <!-- Time Management Method Selector -->
+                            <div class="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <i class="fas fa-clock mr-2 text-indigo-500"></i>Time Management Method
+                                    </label>
+                                    <div id="recommendation-badge" class="hidden bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full text-xs flex items-center">
+                                        <!-- Will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                                
+                                <select id="time-method-select" class="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="pomodoro">🍅 Pomodoro (0.42/0.08)</option>
+                                    <option value="52-17">⏱️ 52/17 Method (0.87/0.28)</option>
+                                    <option value="flowtime">🌊 Flowtime (0.75/0.25/0.5)</option>
+                                    <option value="ultradian">🌙 Ultradian (1.5/0.33/0.75)</option>
+                                    <option value="custom">⚙️ Custom</option>
+                                </select>
+                                
+                                <div id="method-details" class="mt-4">
+                                    <p id="method-description" class="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                                        Work for 25 minutes, then take a 5-minute break. After 4 cycles, take a longer 15-30 minute break.
+                                    </p>
+                                    
+                                    <div id="method-params" class="space-y-3">
+                                        <!-- Method parameters will be populated by JavaScript -->
+                                    </div>
+                                    
+                                    <div id="method-tips" class="mt-4 p-3 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-lg">
+                                        <!-- Tips will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Music Player -->
+                            <div class="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-base font-medium text-gray-900 dark:text-white flex items-center">
+                                        <i class="fas fa-music mr-2 text-indigo-500"></i>
+                                        Study Music
+                                    </h3>
+                                    <div class="flex items-center space-x-2">
+                                        <button id="prev-track" class="p-1.5 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" title="Previous Track">
+                                            <i class="fas fa-step-backward"></i>
+                                        </button>
+                                        <button id="play-pause" class="p-2 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors" title="Play/Pause">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                        <button id="next-track" class="p-1.5 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" title="Next Track">
+                                            <i class="fas fa-step-forward"></i>
+                                        </button>
+                                        <div class="relative group">
+                                            <button id="volume-btn" class="p-1.5 text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-full transition-colors" title="Volume">
+                                                <i class="fas fa-volume-up"></i>
+                                            </button>
+                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                                <input type="range" id="volume" min="0" max="100" value="50" class="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-600 dark:[&::-webkit-slider-thumb]:bg-indigo-400">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2 mb-4">
+                                    <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Now Playing</div>
+                                    <div id="now-playing" class="flex items-center">
+                                        <div class="w-10 h-10 rounded bg-gray-200 dark:bg-gray-700 mr-3 overflow-hidden flex-shrink-0">
+                                            <img id="now-playing-cover" src="" alt="" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                                        </div>
+                                        <div>
+                                            <div id="now-playing-title" class="text-sm font-medium text-gray-900 dark:text-white">Select a station</div>
+                                            <div id="now-playing-desc" class="text-xs text-gray-500 dark:text-gray-400"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Stations</span>
+                                        <div class="flex items-center space-x-2">
+                                            <button id="refresh-stations" class="text-xs text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Refresh Stations">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                            <button id="add-station" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline transition-colors" title="Add Custom Station">
+                                                <i class="fas fa-plus mr-1"></i> Add
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="radio-stations" class="space-y-2">
+                                        <div class="radio-station p-3 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" data-id="lofi-girl">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-10 h-10 rounded bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                                    <i class="fas fa-headphones text-indigo-600 dark:text-indigo-300"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900 dark:text-white">Chillhop Radio</div>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400">jazzy & lofi hip hop beats - beats to relax/study to</div>
+                                                </div>
+                                        <button id="mute-btn" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                            <i class="fas fa-volume-mute"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                </div>
+                                
+                                <!-- Radio stations will be populated by JavaScript -->
+                                <div id="radio-stations" class="space-y-2"></div>
+                                
+                                <audio id="audio-player" class="hidden"></audio>
+                            </div>
+
                             <!-- Assignment Selection -->
                             <div class="bg-gray-50 dark:bg-gray-700/30 p-6 rounded-xl border border-gray-100 dark:border-gray-700">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -133,8 +243,91 @@
             </button>
         </div>
     </div>
+    <!-- YouTube audio is handled by a hidden iframe in the music player -->
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', path='/js/timer.js') }}"></script>
+<script>
+    // Make sure these functions are available globally
+    window.timeMethods = {};
+    // Define a safe version that won't throw errors if called before time-methods.js loads
+    window.updateMethodParam = function(methodId, input) {
+        if (window.timeMethods && window.timeMethods.updateMethodParam) {
+            return window.timeMethods.updateMethodParam(methodId, input);
+        }
+        // Queue the call for when the function is available
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.timeMethods && window.timeMethods.updateMethodParam) {
+                window.timeMethods.updateMethodParam(methodId, input);
+            }
+        });
+    };
+</script>
+<script src="{{ url_for('static', path='/js/time-methods.js') }}"></script>
+<script src="{{ url_for('static', path='/js/timer-new.js') }}"></script>
+<script src="{{ url_for('static', path='/js/music-player.js') }}"></script>
+<script src="{{ url_for('static', path='/js/app.js') }}"></script>
+<script>
+    // Global variables
+    window.workDuration = 25 * 60; // Default to 25 minutes
+    window.shortBreakDuration = 5 * 60; // 5 minutes
+    window.longBreakDuration = 15 * 60; // 15 minutes
+    window.totalIntervals = 4; // Number of work intervals before long break
+    
+    // Initialize the timer when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load custom stations from localStorage
+        if (typeof loadCustomStations === 'function') {
+            loadCustomStations();
+        }
+        
+        // Initialize the timer
+        if (typeof initTimer === 'function') {
+            initTimer();
+        }
+        
+        // Initialize the time methods
+        if (typeof init === 'function') {
+            init();
+        }
+        
+        // Set default method to Pomodoro if not already set
+        const timeMethodSelect = document.getElementById('time-method-select');
+        if (timeMethodSelect && !timeMethodSelect.value) {
+            timeMethodSelect.value = 'pomodoro';
+            // Update the UI to reflect the initial method
+            if (typeof updateMethodUI === 'function') {
+                updateMethodUI('pomodoro');
+            }
+            if (typeof updateTimerWithMethod === 'function') {
+                updateTimerWithMethod('pomodoro');
+            }
+        }
+        
+        // Load user preferences
+        if (typeof loadUserPreferences === 'function') {
+            loadUserPreferences();
+        } else if (timeMethodSelect && timeMethodSelect.value) {
+            // Fallback to ensure the selected method is applied
+            const methodId = timeMethodSelect.value;
+            if (typeof updateTimerWithMethod === 'function') {
+                updateTimerWithMethod(methodId);
+            }
+        }
+        
+        // Initialize audio context on first user interaction
+        const initAudioOnInteraction = function() {
+            if (typeof initAudioContext === 'function') {
+                initAudioContext();
+            }
+            document.removeEventListener('click', initAudioOnInteraction);
+            document.removeEventListener('keydown', initAudioOnInteraction);
+            document.removeEventListener('touchstart', initAudioOnInteraction);
+        };
+        
+        document.addEventListener('click', initAudioOnInteraction);
+        document.addEventListener('keydown', initAudioOnInteraction);
+        document.addEventListener('touchstart', initAudioOnInteraction);
+    });
+</script>
 {% endblock %}

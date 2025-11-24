@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from backend.database import Base, engine
+from backend.database import Base
 import hashlib
 
 class User(Base):
@@ -16,19 +16,33 @@ class User(Base):
     total_points = Column(Integer, default=0)
     current_streak = Column(Integer, default=0)
     longest_streak = Column(Integer, default=0)
-    last_activity_date = Column(DateTime, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     achievements = relationship("UserAchievement", back_populates="user")
-
+    playlists = relationship("Playlist", back_populates="user")
+    custom_tracks = relationship("UserCustomTrack", back_populates="user")
+    
+    # Time management relationships
+    method_preference = relationship(
+        "UserMethodPreference", 
+        back_populates="user", 
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+    work_sessions = relationship(
+        "WorkSession", 
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    
     def set_password(self, password):
-        """Simple password hashing (for class project - not production ready)"""
+        """Set the password hash for the user"""
         self.password_hash = hashlib.sha256(password.encode()).hexdigest()
-
+    
     def check_password(self, password):
-        """Verify password"""
+        """Verify the password against the stored hash"""
         return self.password_hash == hashlib.sha256(password.encode()).hexdigest()
 
 
