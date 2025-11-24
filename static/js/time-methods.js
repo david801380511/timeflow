@@ -1,44 +1,64 @@
 // Time Management Methods Configuration
-const timeMethods = {
+window.timeMethods = {  // Make it globally available
     'pomodoro': {
-        name: 'Pomodoro',
-        description: 'Work for 25 minutes, then take a 5-minute break. After 4 cycles, take a longer 15-30 minute break.',
-        workDuration: 25, // in minutes
-        shortBreak: 5,    // in minutes
-        longBreak: 15,    // in minutes
-        intervals: 4,     // Number of work intervals before long break
+        name: 'Pomodoro (0.42/0.08)',
+        displayName: '🍅 Pomodoro (0.42/0.08)',
+        description: 'Work for 0.42 hours, then take a 0.08-hour break. After 4 cycles, take a longer 0.25-0.5 hour break.',
+        workDuration: 25,
+        shortBreak: 5,
+        longBreak: 15,
+        intervals: 4,
         color: 'indigo',
-        icon: 'fa-clock'
+        icon: 'fa-clock',
+        tags: ['focused', 'structured', 'short-breaks']
     },
     '52-17': {
-        name: '52-17',
-        description: 'Work for 52 minutes, then take a 17-minute break. Based on productivity research showing optimal work/rest cycles.',
-        workDuration: 52,  // in minutes
-        shortBreak: 17,    // in minutes
-        longBreak: 30,     // in minutes
+        name: '52-17 (0.87/0.28)',
+        displayName: '⏱️ 52/17 Method (0.87/0.28)',
+        description: 'Work for 0.87 hours, then take a 0.28-hour break. Based on productivity research showing optimal work/rest cycles.',
+        workDuration: 52,
+        shortBreak: 17,
+        longBreak: 30,
         intervals: 2,
         color: 'blue',
-        icon: 'fa-hourglass-half'
+        icon: 'fa-hourglass-half',
+        tags: ['focused', 'moderate-breaks', 'research-backed']
     },
     'flowtime': {
-        name: 'Flowtime',
-        description: 'Work in flexible time blocks based on your natural flow state. Take breaks when you feel your focus waning.',
-        workDuration: 45,  // in minutes
-        shortBreak: 15,    // in minutes
-        longBreak: 30,     // in minutes
+        name: 'Flowtime (0.75/0.25/0.5)',
+        displayName: '🌊 Flowtime (0.75/0.25/0.5)',
+        description: 'Work in flexible time blocks (0.75h work, 0.25h short break, 0.5h long break) based on your natural flow state.',
+        workDuration: 45,
+        shortBreak: 15,
+        longBreak: 30,
         intervals: 3,
         color: 'purple',
-        icon: 'fa-infinity'
+        icon: 'fa-infinity',
+        tags: ['flexible', 'flow-state', 'self-paced']
     },
     'ultradian': {
-        name: 'Ultradian Rhythms',
-        description: 'Work in 90-minute cycles followed by 20-30 minute breaks, aligned with your body\'s natural energy cycles.',
-        workDuration: 90,  // in minutes
-        shortBreak: 20,    // in minutes
-        longBreak: 30,     // in minutes
+        name: 'Ultradian (1.5/0.33/0.75)',
+        displayName: '🌙 Ultradian (1.5/0.33/0.75)',
+        description: 'Work in 1.5-hour cycles followed by 0.33-0.5 hour breaks, aligned with your body\'s natural energy cycles.',
+        workDuration: 90,
+        shortBreak: 20,
+        longBreak: 45,
         intervals: 2,
         color: 'green',
-        icon: 'fa-wave-square'
+        icon: 'fa-wave-square',
+        tags: ['long-sessions', 'natural-cycles', 'deep-work']
+    },
+    'custom': {
+        name: 'Custom',
+        displayName: '⚙️ Custom',
+        description: 'Set your own work and break intervals in hours.',
+        workDuration: 30,
+        shortBreak: 5,
+        longBreak: 15,
+        intervals: 4,
+        color: 'gray',
+        icon: 'fa-cog',
+        tags: ['customizable']
     }
 };
 
@@ -48,6 +68,312 @@ const methodDetails = document.getElementById('method-details');
 const methodDescription = document.getElementById('method-description');
 const methodParams = document.getElementById('method-params');
 const recommendedMethod = document.getElementById('recommended-method');
+const recommendationBadge = document.getElementById('recommendation-badge');
+const methodTips = document.getElementById('method-tips');
+
+// User preferences and state
+let userPreferences = {
+    preferredMethod: 'pomodoro',
+    completedSessions: 0,
+    sessionHistory: [],
+    musicEnabled: true,
+    volume: 0.5,
+    customMethods: {}
+};
+
+// Load user preferences from localStorage
+function loadUserPreferences() {
+    const saved = localStorage.getItem('timeflow_preferences');
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            userPreferences = { ...userPreferences, ...parsed };
+            
+            // Update UI
+            if (timeMethodSelect) {
+                timeMethodSelect.value = userPreferences.preferredMethod;
+                updateMethodUI(userPreferences.preferredMethod);
+            }
+            
+            // Update volume
+            if (volumeControl) {
+                volumeControl.value = userPreferences.volume * 100;
+                updateVolume({ target: { value: userPreferences.volume * 100 } });
+            }
+            
+        } catch (e) {
+            console.error('Error loading preferences:', e);
+        }
+    }
+    recommendMethod();
+}
+
+// Save user preferences to localStorage
+function saveUserPreferences() {
+    try {
+        localStorage.setItem('timeflow_preferences', JSON.stringify(userPreferences));
+    } catch (e) {
+        console.error('Error saving preferences:', e);
+    }
+}
+
+// Get current method settings
+function getCurrentMethod() {
+    const methodId = timeMethodSelect ? timeMethodSelect.value : 'pomodoro';
+    return {
+        id: methodId,
+        ...timeMethods[methodId],
+        ...(userPreferences.customMethods[methodId] || {})
+    };
+}
+
+// Update method UI based on selection
+function updateMethodUI(methodId) {
+    const method = timeMethods[methodId] || timeMethods.pomodoro;
+    
+    // Update description
+    if (methodDescription) {
+        methodDescription.textContent = method.description;
+    }
+    
+    // Update parameters display
+    updateMethodParams(methodId);
+    
+    // Update tips
+    updateMethodTips(methodId);
+    
+    // Save preference
+    userPreferences.preferredMethod = methodId;
+    saveUserPreferences();
+}
+
+// Update method parameters display
+function updateMethodParams(methodId) {
+    if (!methodParams) return;
+    
+    const method = timeMethods[methodId] || timeMethods.pomodoro;
+    const isCustom = methodId === 'custom' || userPreferences.customMethods[methodId];
+    
+    // Convert minutes to hours for display (with 2 decimal places)
+    const workHours = (method.workDuration / 60).toFixed(2);
+    const shortBreakHours = (method.shortBreak / 60).toFixed(2);
+    const longBreakHours = (method.longBreak / 60).toFixed(2);
+    
+    methodParams.innerHTML = `
+        <div class="grid grid-cols-3 gap-4 mt-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Work Duration (hours)</label>
+                <div class="flex items-center">
+                    <input type="number" 
+                           step="0.01"
+                           min="0.01"
+                           class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-sm" 
+                           value="${workHours}" 
+                           ${!isCustom ? 'disabled' : ''}
+                           onchange="updateCustomParam('workDuration', (parseFloat(this.value) * 60).toFixed(0))">
+                    <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">hours</span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Short Break (hours)</label>
+                <div class="flex items-center">
+                    <input type="number" 
+                           step="0.01"
+                           min="0.01"
+                           class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-sm" 
+                           value="${shortBreakHours}"
+                           ${!isCustom ? 'disabled' : ''}
+                           onchange="updateCustomParam('shortBreak', (parseFloat(this.value) * 60).toFixed(0))">
+                    <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">hours</span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Long Break (hours)</label>
+                <div class="flex items-center">
+                    <input type="number" 
+                           step="0.01"
+                           min="0.01"
+                           class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-sm" 
+                           value="${longBreakHours}"
+                           ${!isCustom ? 'disabled' : ''}
+                           onchange="updateCustomParam('longBreak', (parseFloat(this.value) * 60).toFixed(0))">
+                    <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">hours</span>
+                </div>
+            </div>
+        </div>
+        ${isCustom ? `
+        <div class="mt-3">
+            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Intervals</label>
+            <input type="number" 
+                   class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-sm" 
+                   value="${method.intervals || 4}"
+                   onchange="updateCustomParam('intervals', this.value)">
+        </div>
+        ` : ''}
+    `;
+}
+
+// Update custom method parameter
+function updateCustomParam(param, value) {
+    const methodId = timeMethodSelect ? timeMethodSelect.value : 'custom';
+    if (!userPreferences.customMethods[methodId]) {
+        userPreferences.customMethods[methodId] = { ...timeMethods[methodId] };
+    }
+    
+    userPreferences.customMethods[methodId][param] = parseInt(value, 10) || 0;
+    saveUserPreferences();
+    
+    // Update timer if it's the current method
+    if (timeMethodSelect && timeMethodSelect.value === methodId) {
+        updateTimerWithMethod(methodId);
+    }
+}
+
+// Update method tips based on selection
+function updateMethodTips(methodId) {
+    if (!methodTips) return;
+    
+    const tips = {
+        'pomodoro': [
+            'Use the 5-minute breaks to stand up and stretch',
+            'After 4 cycles, take a longer 15-30 minute break',
+            'Use a task list to stay focused during work intervals'
+        ],
+        '52-17': [
+            'Use the 17-minute breaks to completely step away from work',
+            'Great for deep work sessions',
+            'Try to avoid screens during breaks'
+        ],
+        'flowtime': [
+            'Adjust work periods based on your natural focus cycles',
+            'Take breaks when you feel your focus waning',
+            'Track your most productive times of day'
+        ],
+        'ultradian': [
+            'Ideal for deep work and creative tasks',
+            'Use the long breaks for meals or exercise',
+            'Try to align with your natural energy levels'
+        ],
+        'custom': [
+            'Experiment with different work/break ratios',
+            'Track your productivity to find your optimal schedule',
+            'Adjust based on the type of work you\'re doing'
+        ]
+    };
+    
+    const tipList = tips[methodId] || tips.pomodoro;
+    methodTips.innerHTML = `
+        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tips for ${timeMethods[methodId]?.name || 'this method'}:</h4>
+        <ul class="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+            ${tipList.map(tip => `<li class="flex items-start">
+                <span class="text-indigo-500 mr-2">•</span> ${tip}
+            </li>`).join('')}
+        </ul>
+    `;
+}
+
+// Recommend a time management method based on user behavior
+async function recommendMethod() {
+    if (!recommendationBadge) return;
+    
+    try {
+        // In a real app, this would be an API call to get a recommendation
+        // For now, we'll use a simple algorithm based on session history
+        const history = userPreferences.sessionHistory || [];
+        const recentSessions = history.slice(-10); // Look at last 10 sessions
+        
+        if (recentSessions.length === 0) {
+            // Default recommendation for new users
+            recommendMethodById('pomodoro', 'Great for getting started!');
+            return;
+        }
+        
+        // Simple recommendation logic
+        const sessionDurations = recentSessions.map(s => s.duration || 25);
+        const avgDuration = sessionDurations.reduce((a, b) => a + b, 0) / sessionDurations.length;
+        
+        let recommendedMethod = 'pomodoro';
+        let reason = 'Balanced work/break ratio';
+        
+        if (avgDuration > 45) {
+            recommendedMethod = 'ultradian';
+            reason = 'Your work sessions tend to be longer';
+        } else if (recentSessions.filter(s => s.completed).length / recentSessions.length < 0.5) {
+            recommendedMethod = '52-17';
+            reason = 'You might benefit from longer focused sessions';
+        } else if (recentSessions.length > 5 && recentSessions.filter(s => s.breakSkipped).length > 3) {
+            recommendedMethod = 'flowtime';
+            reason = 'You might prefer more flexible break times';
+        }
+        
+        // Don't recommend current method
+        if (recommendedMethod === userPreferences.preferredMethod) {
+            recommendationBadge.classList.add('hidden');
+        } else {
+            recommendMethodById(recommendedMethod, reason);
+        }
+        
+    } catch (error) {
+        console.error('Error generating recommendation:', error);
+        recommendationBadge.classList.add('hidden');
+    }
+}
+
+// Show recommendation for a specific method
+function recommendMethodById(methodId, reason) {
+    if (!recommendationBadge || !timeMethods[methodId]) return;
+    
+    recommendationBadge.innerHTML = `
+        <span class="text-xs font-medium text-indigo-600 dark:text-indigo-400">
+            <i class="fas fa-lightbulb mr-1"></i>
+            Recommended: ${timeMethods[methodId].name} • ${reason}
+        </span>
+        <button onclick="switchToMethod('${methodId}')" class="ml-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
+            Try it
+        </button>
+    `;
+    recommendationBadge.classList.remove('hidden');
+}
+
+// Switch to a specific method
+function switchToMethod(methodId) {
+    if (!timeMethods[methodId]) return;
+    
+    if (timeMethodSelect) {
+        timeMethodSelect.value = methodId;
+        updateMethodUI(methodId);
+        updateTimerWithMethod(methodId);
+    }
+    
+    if (recommendationBadge) {
+        recommendationBadge.classList.add('hidden');
+    }
+}
+
+// Track completed session
+function trackSessionCompleted(duration, completed = true, breakSkipped = false) {
+    if (!userPreferences.sessionHistory) {
+        userPreferences.sessionHistory = [];
+    }
+    
+    userPreferences.sessionHistory.push({
+        date: new Date().toISOString(),
+        duration,
+        completed,
+        breakSkipped,
+        method: timeMethodSelect ? timeMethodSelect.value : 'pomodoro'
+    });
+    
+    // Keep only last 100 sessions
+    if (userPreferences.sessionHistory.length > 100) {
+        userPreferences.sessionHistory = userPreferences.sessionHistory.slice(-100);
+    }
+    
+    saveUserPreferences();
+    
+    // Update recommendation after session
+    setTimeout(recommendMethod, 1000);
+}
 const recommendationReason = document.getElementById('recommendation-reason');
 
 // Music Player State
@@ -702,22 +1028,35 @@ function handleMethodChange(event) {
 }
 
 // Update a method parameter
-function updateMethodParam(methodId, input) {
-    const param = input.dataset.param;
-    const multiplier = parseInt(input.dataset.multiplier) || 1;
-    const value = parseInt(input.value) * multiplier;
+const updateMethodParam = function(methodId, input) {
+    if (!methodId || !input) return;
     
-    // Update the method configuration
-    timeMethods[methodId][param] = value;
+    const value = parseInt(input.value);
+    if (isNaN(value) || value < 1) return;
     
-    // Update the timer if this is the current method
-    if (timeMethodSelect.value === methodId) {
-        updateTimerWithMethod(methodId);
+    // Update the method settings
+    if (timeMethods[methodId]) {
+        const param = input.dataset.param;
+        if (param && timeMethods[methodId].hasOwnProperty(param)) {
+            timeMethods[methodId][param] = value;
+            
+            // If this is the current method, update the timer
+            if (window.currentMethod && window.currentMethod.id === methodId) {
+                updateTimerWithMethod(methodId);
+            }
+            
+            // Save the updated methods
+            saveUserPreference('timeMethods', timeMethods);
+        }
     }
-    
-    // Save updated preferences
-    saveUserPreference('timeMethods', timeMethods);
-}
+};
+
+// Make the function available through the timeMethods object
+window.timeMethods = window.timeMethods || {};
+window.timeMethods.updateMethodParam = updateMethodParam;
+
+// Also make it available globally for backward compatibility
+window.updateMethodParam = updateMethodParam;
 
 // Update timer with method settings
 function updateTimerWithMethod(methodId) {
@@ -731,7 +1070,7 @@ function updateTimerWithMethod(methodId) {
     // Store current method globally
     window.currentMethod = method;
     
-    // Convert minutes to seconds for the timer
+    // Update the timer with new settings (convert minutes to seconds for the timer)
     const timerSettings = {
         workDuration: method.workDuration * 60,    // Convert minutes to seconds
         shortBreak: method.shortBreak * 60,        // Convert minutes to seconds

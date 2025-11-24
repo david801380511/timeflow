@@ -261,15 +261,24 @@ document.addEventListener('timerComplete', () => {
 function updateTimerDisplay() {
     // Ensure timeLeft is a number and not negative
     const currentTime = Math.max(0, Math.floor(timeLeft));
-    // Always show minutes and seconds, even for durations over an hour
-    const minutes = Math.floor(currentTime / 60);
+    
+    // Convert seconds to hours, minutes, and seconds
+    const hours = Math.floor(currentTime / 3600);
+    const minutes = Math.floor((currentTime % 3600) / 60);
     const seconds = currentTime % 60;
     
-    // Format time as MM:SS
-    const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    // Format time as HH:MM:SS or MM:SS depending on hours
+    let timeString;
+    if (hours > 0) {
+        timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    } else {
+        timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
     
     if (timeDisplay) {
         timeDisplay.textContent = timeString;
+        // Also update the title for visibility when tab is not active
+        document.title = `${timeString} - ${isBreak ? (isLongBreak ? 'Long Break' : 'Short Break') : 'Focus Time'}`;
     } else {
         console.error('Time display element not found');
     }
